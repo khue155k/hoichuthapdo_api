@@ -5,6 +5,7 @@ namespace API.Models
 {
     public class TinhNguyenVien
     {
+        [Key]
         [Required(ErrorMessage = "Trường 'CCCD' không được để trống.")]
         [RegularExpression(@"^\d{12}$", ErrorMessage = "Trường 'CCCD' phải là số và có 12 chữ số.")]
         public string CCCD { get; set; }

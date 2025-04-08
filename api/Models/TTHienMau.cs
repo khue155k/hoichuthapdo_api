@@ -2,7 +2,7 @@
 
 namespace API.Models {
     public class TTHienMau {
-
+        [Key]
         [Required(ErrorMessage = "Trường 'Mã thông tin' không được để trống.")]
         public ulong MaTT { get; set; }
 

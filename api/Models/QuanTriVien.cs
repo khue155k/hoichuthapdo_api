@@ -1,7 +1,10 @@
-﻿namespace API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace API.Models
 {
     public class QuanTriVien
     {
+        [Key]
         public ulong MaQTV { get; set; }
         public string TenQTV { get; set; }
         public string ChucVu { get; set; }

@@ -12,6 +12,6 @@ namespace API.Models
         public string Password { get; set; }
         [Required]
         public string Role { get; set; }
-        public string Create_time { get; set; }
+        public DateTime Create_time { get; set; }
     }
 }

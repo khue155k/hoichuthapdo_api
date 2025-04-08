@@ -33,7 +33,7 @@ namespace API.Controllers
         /// <summary>
         /// Đăng nhập vào hệ thống.
         /// </summary>
-        /// <param name="loginUser">Thông tin đăng nhập bao gồm Username và mật khẩu.</param>
+        /// <param name="loginUser">Thông tin đăng nhập bao gồm tài khoản và mật khẩu.</param>
         /// <returns>Trả về JWT token nếu đăng nhập thành công.</returns>
         [HttpPost]
         public async Task<ActionResult<TemplateResult<object>>> Login([FromBody] Login loginUser)

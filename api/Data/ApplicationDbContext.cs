@@ -21,5 +21,12 @@ namespace API.Data
         public DbSet<Province> Provinces { get; set; }
         public DbSet<District> Districts { get; set; }
         public DbSet<Ward> Wards { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<LichSuTangQua>()
+                .HasKey(x => new { x.CCCD, x.MaQua });
+        }
     }
 }
