@@ -104,7 +104,7 @@ namespace API.Controllers
             _context.SaveChanges();
 
             result.Code = 200;
-            result.Message = "Tạo đơn vị hiến máu thành công";
+            result.Message = "Tạo tình nguyện viên hiến máu thành công";
             result.Data = TNV;
             return result;
         }
@@ -119,7 +119,7 @@ namespace API.Controllers
             if (existingEntry == null)
             {
                 result.Code = 404;
-                result.Message = $"Không tìm thấy đơn vị hiến máu có id = {CCCD}";
+                result.Message = $"Không tìm thấy tình nguyện viên hiến máu có id = {CCCD}";
                 return result;
             }
             existingEntry.HoTen = TNV.HoTen;
@@ -134,7 +134,7 @@ namespace API.Controllers
             _context.SaveChanges();
 
             result.Code = 200;
-            result.Message = "Sửa đơn vị hiến máu thành công";
+            result.Message = "Sửa tình nguyện viên hiến máu thành công";
             result.Data = existingEntry;
             return result;
         }
@@ -147,7 +147,7 @@ namespace API.Controllers
             if (existingEntry == null)
             {
                 result.Code = 404;
-                result.Message = $"Không tìm thấy đơn vị hiến máu có id = {CCCD}";
+                result.Message = $"Không tìm thấy tình nguyện viên hiến máu có id = {CCCD}";
                 return result;
             }
 
@@ -155,7 +155,7 @@ namespace API.Controllers
             _context.SaveChanges();
 
             result.Code = 200;
-            result.Message = "Xóa đơn vị hiến máu thành công";
+            result.Message = "Xóa tình nguyện viên hiến máu thành công";
             return result;
         }
 
@@ -193,7 +193,7 @@ namespace API.Controllers
             };
 
             result.Code = 200;
-            result.Message = "Tìm kiếm danh sách đơn vị hiến máu thành công";
+            result.Message = "Tìm kiếm danh sách tình nguyện viên hiến máu thành công";
             result.Data = paginatedResult;
             return Ok(result);
         }
@@ -226,7 +226,7 @@ namespace API.Controllers
             };
 
             result.Code = 200;
-            result.Message = "Lấy danh sách đơn vị hiến máu thành công";
+            result.Message = "Lấy danh sách tình nguyện viên hiến máu thành công";
             result.Data = paginatedResult;
             return Ok(result);
         }
