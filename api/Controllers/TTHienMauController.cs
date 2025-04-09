@@ -373,7 +373,7 @@ namespace API.Controllers
         }
 
         [Authorize]
-        [HttpGet("dsHMTheoDot")]
+        [HttpGet("ttHMTheoDot")]
         public async Task<ActionResult<TemplateResult<object>>> DsHMTheoDot(int year)
         {
             var data = await _context.dot_hien_mau
@@ -399,7 +399,7 @@ namespace API.Controllers
         }
 
         [Authorize]
-        [HttpGet("dsHMTheoThang")]
+        [HttpGet("ttHMTheoThang")]
         public async Task<ActionResult<TemplateResult<object>>> DsHMTheoThang(int year)
         {
             var data = await _context.dot_hien_mau
