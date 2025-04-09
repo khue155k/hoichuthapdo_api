@@ -149,11 +149,11 @@ namespace api.Controllers
         [HttpGet("the_tich_mau_hien")]
         public async Task<ActionResult<TemplateResult<IEnumerable<object>>>> GetAllTheTichMauHien()
         {
-            var theTichMauHienList = await (from the_tich in _context.the_tich_mau_hien
+            var theTichMauHienList = await (from theTich in _context.the_tich_mau_hien
                                             select new
                                             {
-                                                value = the_tich.MaTheTich,
-                                                label = the_tich.TheTich
+                                                value = theTich.MaTheTich,
+                                                label = theTich.TheTich
                                             })
                                             .ToListAsync();
             return Ok(new TemplateResult<IEnumerable<object>>

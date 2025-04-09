@@ -125,7 +125,7 @@ namespace API.Controllers
             volunteer.MaPhuongXa = updatedEntry.MaPhuongXa;
             _context.SaveChanges();
 
-            result.Code = 400;
+            result.Code = 200;
             result.Message = "Cập nhật thông tin hiến máu thành công.";
             result.Data = existingEntry;
             return result;

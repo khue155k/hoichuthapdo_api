@@ -10,7 +10,7 @@ namespace API.Data
         }
         public DbSet<DonVi> don_vi { get; set; }
         public DbSet<DotHienMau> dot_hien_mau { get; set; }
-        public DbSet<LichSuTangQua> lích_su_tang_qua { get; set; }
+        public DbSet<LichSuTangQua> lich_su_tang_qua { get; set; }
         public DbSet<QuanTriVien> quan_tri_vien { get; set; }
         public DbSet<QuaTang> qua_tang { get; set; }
         public DbSet<TaiKhoan> tai_khoan { get; set; }

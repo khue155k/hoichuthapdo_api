@@ -22,10 +22,7 @@ namespace API.Models
         [Required(ErrorMessage = "Trường 'Số điện thoại' không được để trống.")]
         [RegularExpression(@"^\d{10}$", ErrorMessage = "Trường 'SDT' phải là số và có 10 chữ số.")]
         public string SoDienThoai { get; set; }
-
-        [Required(ErrorMessage = "Trường 'Email' không được để trống.")]
-        [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ.")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Required(ErrorMessage = "Trường 'Tỉnh thành code' không được để trống.")]
         public ulong MaTinhThanh { get; set; }
