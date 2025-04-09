@@ -293,7 +293,7 @@ namespace API.Controllers
         [HttpGet("search")]
         public async Task<ActionResult<PaginatedResult<TTHienMauDto>>> Search(
             string string_tim_kiem = "Nội dung tìm kiếm",
-            string string_ket_qua = "Nội dung tìm kiếm",
+            string string_ketQua = "Nội dung tìm kiếm",
             ulong MaDot = 0,
             int pageSize = 10,
             int currentPage = 1)
@@ -342,9 +342,9 @@ namespace API.Controllers
                                          q.CCCD.Contains(string_tim_kiem) ||
                                          q.SoDienThoai.Contains(string_tim_kiem));
             }
-            if (!string.IsNullOrEmpty(string_ket_qua) && string_ket_qua != "Nội dung tìm kiếm")
+            if (!string.IsNullOrEmpty(string_ketQua) && string_ketQua != "Nội dung tìm kiếm")
             {
-                query = query.Where(q => q.KetQua == string_ket_qua);
+                query = query.Where(q => q.KetQua == string_ketQua);
             }
             if (MaDot > 0)
             {

@@ -19,12 +19,12 @@ namespace api.Controllers
         {
             _context = context;
         }
-        // POST: https://localhost:7037/api/Register
         /// <summary>
         /// Tạo đơn vị hiến máu
         /// </summary>
-        [HttpPost("createDotHm")]
-        public async Task<ActionResult<TemplateResult<DonVi>>> CreateDotHm([FromBody] DonVi donVi)
+        [Authorize]
+        [HttpPost("createDonVi")]
+        public async Task<ActionResult<TemplateResult<DonVi>>> CreateDonVi([FromBody] DonVi donVi)
         {
             var result = new TemplateResult<DonVi> { };
             if (!ModelState.IsValid)
@@ -41,9 +41,9 @@ namespace api.Controllers
             result.Data = donVi;
             return result;
         }
-
-        [HttpPut("updateDotHm/{id}")]
-        public async Task<ActionResult<TemplateResult<DonVi>>> UpdateDotHm(ulong id, [FromBody] DonVi donVi)
+        [Authorize]
+        [HttpPut("updateDonVi/{id}")]
+        public async Task<ActionResult<TemplateResult<DonVi>>> UpdateDonVi(ulong id, [FromBody] DonVi donVi)
         {
             var result = new TemplateResult<DonVi> { };
 
@@ -65,9 +65,9 @@ namespace api.Controllers
             result.Data = existingEntry;
             return result;
         }
-
-        [HttpDelete("deleteDotHm/{id}")]
-        public async Task<ActionResult<TemplateResult<object>>> DeleteDotHm(ulong id)
+        [Authorize]
+        [HttpDelete("deleteDonVi/{id}")]
+        public async Task<ActionResult<TemplateResult<object>>> DeleteDonVi(ulong id)
         {
             var result = new TemplateResult<object> { };
             var existingEntry = _context.don_vi.FirstOrDefault(d => d.MaDV == id);
@@ -119,7 +119,7 @@ namespace api.Controllers
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {
                 query = query.Where(q => q.TenDV.Contains(string_tim_kiem) ||
-                                         q.SoDienThoai.Contains(string_tim_kiem));
+                                         q.Email.Contains(string_tim_kiem));
             }
 
             var result = new TemplateResult<PaginatedResult<DonVi>>();
@@ -143,7 +143,7 @@ namespace api.Controllers
             return Ok(result);
         }
 
-        // GET: api/DotHieMmau
+        // GET: api/DonVi
         [HttpGet]
         public async Task<ActionResult<TemplateResult<IEnumerable<DonVi>>>> GetAllDonVi()
         {
