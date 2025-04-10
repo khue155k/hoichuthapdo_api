@@ -37,7 +37,7 @@ namespace api.Controllers
             _context.SaveChanges();
 
             result.Code = 200;
-            result.Message = "Tạo đơn vị hiến máu thành công";
+            result.Message = "Tạo quà tặng thành công";
             result.Data = quaTang;
             return result;
         }
@@ -52,7 +52,7 @@ namespace api.Controllers
             if (existingEntry == null)
             {
                 result.Code = 404;
-                result.Message = $"Không tìm thấy đơn vị hiến máu có id = {id}";
+                result.Message = $"Không tìm thấy quà tặng có id = {id}";
                 return result;
             }
             existingEntry.TenQua = quaTang.TenQua;
@@ -61,7 +61,7 @@ namespace api.Controllers
             _context.SaveChanges();
 
             result.Code = 200;
-            result.Message = "Sửa đơn vị hiến máu thành công";
+            result.Message = "Sửa quà tặng thành công";
             result.Data = existingEntry;
             return result;
         }
@@ -74,7 +74,7 @@ namespace api.Controllers
             if (existingEntry == null)
             {
                 result.Code = 404;
-                result.Message = $"Không tìm thấy đơn vị hiến máu có id = {id}";
+                result.Message = $"Không tìm thấy quà tặng có id = {id}";
                 return result;
             }
 
@@ -82,7 +82,7 @@ namespace api.Controllers
             _context.SaveChanges();
 
             result.Code = 200;
-            result.Message = "Xóa đơn vị hiến máu thành công";
+            result.Message = "Xóa quà tặng thành công";
             return result;
         }
 
@@ -101,7 +101,7 @@ namespace api.Controllers
             }
 
             result.Code = 200;
-            result.Message = "Lấy đơn vị hiến máu thành công";
+            result.Message = "Lấy quà tặng thành công";
             result.Data = quaTang;
             return result;
         }
@@ -137,7 +137,7 @@ namespace api.Controllers
             };
 
             result.Code = 200;
-            result.Message = "Tìm kiếm danh sách đơn vị hiến máu thành công";
+            result.Message = "Tìm kiếm danh sách quà tặng thành công";
             result.Data = paginatedResult;
             return Ok(result);
         }
@@ -158,7 +158,7 @@ namespace api.Controllers
             }
 
             result.Code = 200;
-            result.Message = "Lấy danh sách đơn vị hiến máu thành công";
+            result.Message = "Lấy danh sách quà tặng thành công";
             result.Data = quaTangList;
 
             return result;
@@ -192,9 +192,97 @@ namespace api.Controllers
             };
 
             result.Code = 200;
-            result.Message = "Lấy danh sách đơn vị hiến máu thành công";
+            result.Message = "Lấy danh sách quà tặng thành công";
             result.Data = paginatedResult;
             return Ok(result);
         }
+
+        //[Authorize]
+        [HttpGet("searchTNV")]
+        public async Task<ActionResult<TemplateResult<PaginatedResult<TinhNguyenVienDTO>>>> SearchTNV(
+            string string_tim_kiem = "Nội dung tìm kiếm",
+            int pageSize = 10,
+            int currentPage = 1)
+        {
+            var query = _context.tinh_nguyen_vien.AsQueryable();
+
+            if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
+            {
+                query = query.Where(q => q.HoTen.Contains(string_tim_kiem) ||
+                                         q.SoDienThoai.Contains(string_tim_kiem) ||
+                                         q.CCCD.Contains(string_tim_kiem) ||
+                                         q.Email.Contains(string_tim_kiem));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var data = await query.ToListAsync();
+
+            var cccds = data.Select(x => x.CCCD).ToList();
+
+            var quaDaNhanCounts = await _context.lich_su_tang_qua
+                .Where(x => cccds.Contains(x.CCCD))
+                .GroupBy(x => x.CCCD)
+                .Select(g => new { CCCD = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CCCD, x => x.Count);
+
+            var dtoList = data.Select(tnv => new TinhNguyenVienDTO
+            {
+                CCCD = tnv.CCCD,
+                HoTen = tnv.HoTen,
+                SoDienThoai = tnv.SoDienThoai,
+                Email = tnv.Email,
+                MaTinhThanh = tnv.MaTinhThanh,
+                MaQuanHuyen = tnv.MaQuanHuyen,
+                MaPhuongXa = tnv.MaPhuongXa,
+                SoLanHien = tnv.SoLanHien,
+                SoQuaDaNhan = quaDaNhanCounts.ContainsKey(tnv.CCCD) ? quaDaNhanCounts[tnv.CCCD] : 0
+            }).ToList();
+
+            var sortedList = dtoList
+                .OrderBy(x => x.SoQuaDaNhan)
+                .ThenByDescending(x => x.SoLanHien)
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var paginatedResult = new PaginatedResult<TinhNguyenVienDTO>
+            {
+                TotalCount = totalCount,
+                CurrentPage = currentPage,
+                PageSize = pageSize,
+                Items = sortedList
+            };
+
+            var result = new TemplateResult<PaginatedResult<TinhNguyenVienDTO>>
+            {
+                Code = 200,
+                Message = "Tìm kiếm danh sách tình nguyện viên thành công",
+                Data = paginatedResult
+            };
+
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("tangQua")]
+        public async Task<ActionResult<TemplateResult<LichSuTangQua>>> TangQua([FromBody] LichSuTangQua lichSuTangQua)
+        {
+            var result = new TemplateResult<LichSuTangQua> { };
+            if (!ModelState.IsValid)
+            {
+                result.Code = 400;
+                result.Message = ModelState.ToString();
+                return result;
+            }
+            _context.lich_su_tang_qua.Add(lichSuTangQua);
+            _context.SaveChanges();
+
+            result.Code = 200;
+            result.Message = "Tặng quà thành công";
+            result.Data = lichSuTangQua;
+            return result;
+        }
+
     }
 }

@@ -4,6 +4,7 @@ using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 
 namespace API.Controllers
@@ -148,7 +149,8 @@ namespace API.Controllers
         public async Task<ActionResult<TemplateResult<PaginatedResult<TinhNguyenVien>>>> Search(
             string string_tim_kiem = "Nội dung tìm kiếm",
             int pageSize = 10,
-            int currentPage = 1)
+            int currentPage = 1,
+            bool? sortBySoLanHien = false)
         {
             var query = _context.tinh_nguyen_vien.AsEnumerable();
 
@@ -161,6 +163,11 @@ namespace API.Controllers
             }
 
             var result = new TemplateResult<PaginatedResult<TinhNguyenVien>>();
+
+            if (sortBySoLanHien == true)
+            {
+                query = query.OrderByDescending(q => q.SoLanHien);
+            }
 
             var totalCount = query.Count();
             var data = query
@@ -180,38 +187,45 @@ namespace API.Controllers
             result.Data = paginatedResult;
             return Ok(result);
         }
+
         [Authorize]
         [HttpGet("getTNVsPaginated")]
-        public async Task<ActionResult<TemplateResult<IEnumerable<TinhNguyenVien>>>> GetAllTNVPaginated(int pageSize = 10, int currentPage = 1)
-        {
-            var TNVList = await _context.tinh_nguyen_vien.ToListAsync();
-
-            var result = new TemplateResult<PaginatedResult<TinhNguyenVien>>();
-
-            if (TNVList == null || TNVList.Count == 0)
+        public async Task<ActionResult<TemplateResult<PaginatedResult<TinhNguyenVien>>>> GetAllTNVPaginated(
+            int pageSize = 10,
+            int currentPage = 1,
+            bool? sortBySoLanHien = false)
             {
-                result.Code = 404;
-                result.Message = "Không tìm thấy nội dung yêu cầu";
+                var query = _context.tinh_nguyen_vien.AsQueryable();
+
+                if (sortBySoLanHien == true)
+                {
+                    query = query.OrderByDescending(q => q.SoLanHien);
+                }
+
+                var totalCount = await query.CountAsync();
+                var data = await query
+                    .Skip((currentPage - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var paginatedResult = new PaginatedResult<TinhNguyenVien>
+                {
+                    TotalCount = totalCount,
+                    CurrentPage = currentPage,
+                    PageSize = pageSize,
+                    Items = data
+                };
+
+                var result = new TemplateResult<PaginatedResult<TinhNguyenVien>>
+                {
+                    Code = data.Any() ? 200 : 404,
+                    Message = data.Any()
+                        ? "Lấy danh sách tình nguyện viên hiến máu thành công"
+                        : "Không tìm thấy nội dung yêu cầu",
+                    Data = paginatedResult
+                };
+
                 return Ok(result);
             }
-
-            var totalCount = TNVList.Count();
-            var data = TNVList
-                .Skip((currentPage - 1) * pageSize)
-                .Take(pageSize);
-
-            var paginatedResult = new PaginatedResult<TinhNguyenVien>
-            {
-                TotalCount = totalCount,
-                CurrentPage = currentPage,
-                PageSize = pageSize,
-                Items = data
-            };
-
-            result.Code = 200;
-            result.Message = "Lấy danh sách tình nguyện viên hiến máu thành công";
-            result.Data = paginatedResult;
-            return Ok(result);
-        }
     }
 }
