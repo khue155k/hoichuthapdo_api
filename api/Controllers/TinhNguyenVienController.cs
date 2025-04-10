@@ -20,7 +20,8 @@ namespace API.Controllers
         }
 
         // POST: api/TinhNguyenVien
-        [HttpPost]
+        [Authorize]
+        [HttpPost("createTNV")]
         public async Task<ActionResult<TemplateResult<object>>> CreateTinhNguyenVien([FromBody] TinhNguyenVien tinhNguyenVien)
         {
             var result = new TemplateResult<object> { };
@@ -68,6 +69,7 @@ namespace API.Controllers
         }
 
         // GET: api/TinhNguyenVien/cccd/{cccd}
+        [Authorize]
         [HttpGet("cccd/{cccd}")]
         public async Task<ActionResult<TemplateResult<TinhNguyenVien>>> GetTinhNguyenVienByCCCD(string CCCD)
         {
@@ -90,26 +92,7 @@ namespace API.Controllers
         }
 
         [Authorize]
-        [HttpPost("createTNV")]
-        public async Task<ActionResult<TemplateResult<TinhNguyenVien>>> CreateTNV([FromBody] TinhNguyenVien TNV)
-        {
-            var result = new TemplateResult<TinhNguyenVien> { };
-            if (!ModelState.IsValid)
-            {
-                result.Code = 400;
-                result.Message = ModelState.ToString();
-                return result;
-            }
-            _context.tinh_nguyen_vien.Add(TNV);
-            _context.SaveChanges();
-
-            result.Code = 200;
-            result.Message = "Tạo tình nguyện viên hiến máu thành công";
-            result.Data = TNV;
-            return result;
-        }
-        [Authorize]
-        [HttpPut("updateTNV/{id}")]
+        [HttpPut("updateTNV/{CCCD}")]
         public async Task<ActionResult<TemplateResult<TinhNguyenVien>>> UpdateTNV(string CCCD, [FromBody] TinhNguyenVien TNV)
         {
             var result = new TemplateResult<TinhNguyenVien> { };
@@ -139,7 +122,7 @@ namespace API.Controllers
             return result;
         }
         [Authorize]
-        [HttpDelete("deleteTNV/{id}")]
+        [HttpDelete("deleteTNV/{CCCD}")]
         public async Task<ActionResult<TemplateResult<object>>> DeleteTNV(string CCCD)
         {
             var result = new TemplateResult<object> { };
@@ -197,7 +180,7 @@ namespace API.Controllers
             result.Data = paginatedResult;
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("getTNVsPaginated")]
         public async Task<ActionResult<TemplateResult<IEnumerable<TinhNguyenVien>>>> GetAllTNVPaginated(int pageSize = 10, int currentPage = 1)
         {

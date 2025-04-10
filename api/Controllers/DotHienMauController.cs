@@ -185,7 +185,7 @@ namespace api.Controllers
 
             return result;
         }
-
+        [Authorize]
         [HttpGet("getDotHMsPaginated")]
         public async Task<ActionResult<TemplateResult<IEnumerable<DotHienMau>>>> GetAllDotHienMauPaginated(int pageSize = 10, int currentPage = 1)
         {

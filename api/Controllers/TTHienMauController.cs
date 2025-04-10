@@ -246,7 +246,7 @@ namespace API.Controllers
         }
 
         // POST: api/TTHienMau
-        [HttpPost]
+        [HttpPost("createTTHienMau")]
         public async Task<ActionResult<TemplateResult<object>>> CreateTTHienMau(TTHienMau ttHienMau)
         {
             var result = new TemplateResult<object> { };

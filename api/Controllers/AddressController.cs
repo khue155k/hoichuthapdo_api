@@ -58,6 +58,28 @@ namespace API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("province")]
+        public async Task<IActionResult> GetProvince(uint provinceId)
+        {
+            var result = await _context.Provinces.FirstOrDefaultAsync(p => p.ProvinceId == provinceId);
 
+            return Ok(result);
+        }
+
+        [HttpGet("district")]
+        public async Task<IActionResult> GetDistrict(uint districtId)
+        {
+            var result = await _context.Districts.FirstOrDefaultAsync(p => p.DistrictId == districtId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("ward")]
+        public async Task<IActionResult> GetWard(uint wardId)
+        {
+            var result = await _context.Wards.FirstOrDefaultAsync(p => p.WardId == wardId);
+
+            return Ok(result);
+        }
     }
 }
