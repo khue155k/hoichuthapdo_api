@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using api.Common;
 using api.Models;
-//using api.Middleware;
+using api.Middleware;
 using API.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -92,7 +92,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-//app.UseMiddleware<RequestSizeMiddleware>();
+app.UseMiddleware<RequestSizeMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
