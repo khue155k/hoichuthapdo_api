@@ -40,9 +40,57 @@ namespace api.Controllers
             }
 
             result.Code = 200;
-            result.Message = "Lấy danh sách đợt hiến máu thành công";
+            result.Message = "Lấy danh sách tài khoản";
             result.Data = userList;
 
+            return result;
+        }
+
+        [Authorize]
+        [HttpGet("TTQTV")]
+        public async Task<ActionResult<TemplateResult<QuanTriVien>>> GetTTQTV(ulong id)
+        {
+            var result = new TemplateResult<QuanTriVien>();
+
+            var QTV = await _context.quan_tri_vien.FirstOrDefaultAsync(qtv => qtv.TaiKhoan_ID == id);
+
+            if (QTV == null)
+            {
+                result.Code = 404;
+                result.Message = "Không tìm thấy quản trị viên nào";
+                return result;
+            }
+
+            result.Code = 200;
+            result.Message = "Lấy thông tin quản trị viên thành công";
+            result.Data = QTV;
+
+            return result;
+        }
+
+        [HttpPut("updateQTV/{id}")]
+        public async Task<ActionResult<TemplateResult<QuanTriVien>>> UpdateQTV(ulong id, [FromBody] QuanTriVien quanTriVien)
+        {
+            var result = new TemplateResult<QuanTriVien> { };
+
+            var existingEntry = _context.quan_tri_vien.FirstOrDefault(d => d.MaQTV == id);
+
+            if (existingEntry == null)
+            {
+                result.Code = 404;
+                result.Message = $"Không tìm thấy quản trị viên có id = {id}";
+                return result;
+            }
+            existingEntry.TenQTV = quanTriVien.TenQTV;
+            existingEntry.BoPhan = quanTriVien.BoPhan;
+            existingEntry.ChucVu = quanTriVien.ChucVu;
+            existingEntry.Email = quanTriVien.Email;
+            existingEntry.SoDienThoai = quanTriVien.SoDienThoai;
+            _context.SaveChanges();
+
+            result.Code = 200;
+            result.Message = "Sửa quản trị viênthành công";
+            result.Data = existingEntry;
             return result;
         }
 
@@ -50,6 +98,8 @@ namespace api.Controllers
         public async Task<ActionResult<TemplateResult<PaginatedResult<TaiKhoan>>>> SearchtTaiKhoan(string string_tim_kiem = "Nội dung tìm kiếm", int pageSize = 10, int currentPage = 1)
         {
             var query = _context.tai_khoan.AsQueryable();
+
+            query = query.Where(q => q.Role == "user");
 
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {
@@ -73,7 +123,7 @@ namespace api.Controllers
             var result = new TemplateResult<PaginatedResult<TaiKhoan>>();
 
             result.Code = 200;
-            result.Message = "Lấy danh sách đợt hiến máu thành công";
+            result.Message = "Lấy danh sách tài khoản";
             result.Data = paginatedResult;
 
             return result;
@@ -103,6 +153,7 @@ namespace api.Controllers
 
             return result;
         }
+
 
         private string HashPassword(string password)
         {
