@@ -4,6 +4,7 @@ using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 
@@ -192,38 +193,114 @@ namespace API.Controllers
             int pageSize = 10,
             int currentPage = 1,
             bool? sortBySoLanHien = false)
+        {
+            var query = _context.tinh_nguyen_vien.AsQueryable();
+
+            if (sortBySoLanHien == true)
             {
-                var query = _context.tinh_nguyen_vien.AsQueryable();
-
-                if (sortBySoLanHien == true)
-                {
-                    query = query.OrderByDescending(q => q.SoLanHien);
-                }
-
-                var totalCount = await query.CountAsync();
-                var data = await query
-                    .Skip((currentPage - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
-
-                var paginatedResult = new PaginatedResult<TinhNguyenVien>
-                {
-                    TotalCount = totalCount,
-                    CurrentPage = currentPage,
-                    PageSize = pageSize,
-                    Items = data
-                };
-
-                var result = new TemplateResult<PaginatedResult<TinhNguyenVien>>
-                {
-                    Code = data.Any() ? 200 : 404,
-                    Message = data.Any()
-                        ? "Lấy danh sách tình nguyện viên hiến máu thành công"
-                        : "Không tìm thấy nội dung yêu cầu",
-                    Data = paginatedResult
-                };
-
-                return Ok(result);
+                query = query.OrderByDescending(q => q.SoLanHien);
             }
+
+            var totalCount = await query.CountAsync();
+            var data = await query
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var paginatedResult = new PaginatedResult<TinhNguyenVien>
+            {
+                TotalCount = totalCount,
+                CurrentPage = currentPage,
+                PageSize = pageSize,
+                Items = data
+            };
+
+            var result = new TemplateResult<PaginatedResult<TinhNguyenVien>>
+            {
+                Code = data.Any() ? 200 : 404,
+                Message = data.Any()
+                    ? "Lấy danh sách tình nguyện viên hiến máu thành công"
+                    : "Không tìm thấy nội dung yêu cầu",
+                Data = paginatedResult
+            };
+
+            return Ok(result);
+        }
+
+        [HttpGet("ThongKe/{accID}")]
+        public IActionResult GetThongKe(ulong accID)
+        {
+            var cccd = _context.tinh_nguyen_vien
+            .Where(t => t.TaiKhoan_ID == accID)
+            .Select(t => t.CCCD)
+            .FirstOrDefault();
+
+            var thongTinHienList = _context.tt_hien_mau
+                .Where(t => t.CCCD == cccd)
+                .ToList();
+
+            if (!thongTinHienList.Any())
+            {
+                return NotFound("Không tìm thấy dữ liệu hiến máu cho CCCD này.");
+            }
+
+            int soLanHien = _context.tinh_nguyen_vien
+                .Where(t => t.TaiKhoan_ID == accID)
+                .Select(t => t.SoLanHien)
+                .FirstOrDefault(); ;
+
+            var tongLuongMau = (from t in thongTinHienList
+                                join theTich in _context.the_tich_mau_hien
+                                on t.MaTheTich equals theTich.MaTheTich
+                                where t.KetQua == "Đã hiến"
+                                select theTich.TheTich).Sum();
+
+            var lanCuoi = thongTinHienList
+                .OrderByDescending(t => t.ThoiGianHien)
+                .First().ThoiGianHien;
+
+            var soQua = _context.lich_su_tang_qua
+                .Count(q => q.CCCD == cccd);
+
+            string danhHieu = $"Đã hiến {soLanHien} lần";
+            if (soLanHien >= 10) danhHieu = "Hiến máu tiêu biểu";
+            else if (soLanHien >= 5) danhHieu = "Đã hiến 5 lần";
+
+            return Ok(new
+            {
+                soLanHien,
+                tongLuongMau,
+                lanCuoiHien = lanCuoi,
+                danhHieu,
+                soQuaDaNhan = soQua
+            });
+        }
+
+        [HttpGet("LichSu/{accId}")]
+        public async Task<IActionResult> GetLichSuHienMau(ulong accId)
+        {
+            var cccd = _context.tinh_nguyen_vien
+                  .Where(t => t.TaiKhoan_ID == accId)
+                  .Select(t => t.CCCD)
+                  .FirstOrDefault();
+
+            if (cccd == null) return NotFound("Không tìm thấy người dùng");
+
+            var lichSu = await (from ttHM in _context.tt_hien_mau
+                                join thetich in _context.the_tich_mau_hien on ttHM.MaTheTich equals thetich.MaTheTich
+                                join dotHM in _context.dot_hien_mau on ttHM.MaDot equals dotHM.MaDot
+                                where ttHM.CCCD == cccd
+                                orderby ttHM.ThoiGianHien descending
+                                select new 
+                                {
+                                    ThoiGianHien = ttHM.ThoiGianHien,
+                                    TheTich = thetich.TheTich,
+                                    KetQua = ttHM.KetQua,
+                                    TenDot = dotHM.TenDot,   
+                                    DiaDiem = dotHM.DiaDiem     
+                                }).ToListAsync();
+
+            return Ok(lichSu);
+        }
     }
 }
