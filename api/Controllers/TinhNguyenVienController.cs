@@ -21,7 +21,6 @@ namespace API.Controllers
         }
 
         // POST: api/TinhNguyenVien
-        [Authorize]
         [HttpPost("createTNV")]
         public async Task<ActionResult<TemplateResult<object>>> CreateTinhNguyenVien([FromBody] TinhNguyenVien tinhNguyenVien)
         {
@@ -70,7 +69,6 @@ namespace API.Controllers
         }
 
         // GET: api/TinhNguyenVien/cccd/{cccd}
-        [Authorize]
         [HttpGet("cccd/{cccd}")]
         public async Task<ActionResult<TemplateResult<TinhNguyenVien>>> GetTinhNguyenVienByCCCD(string CCCD)
         {

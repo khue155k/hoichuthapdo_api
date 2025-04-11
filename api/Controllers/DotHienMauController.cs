@@ -145,8 +145,8 @@ namespace api.Controllers
             return Ok(result);
         }
 
-        // GET: api/DotHieMmau/the_tich_mau_hien
-        [HttpGet("the_tich_mau_hien")]
+        // GET: api/DotHieMmau/TheTichMH
+        [HttpGet("TheTichMH")]
         public async Task<ActionResult<TemplateResult<IEnumerable<object>>>> GetAllTheTichMauHien()
         {
             var theTichMauHienList = await (from theTich in _context.the_tich_mau_hien
