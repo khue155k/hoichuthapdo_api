@@ -37,5 +37,7 @@ namespace API.Models
         [Range(0, ulong.MaxValue, ErrorMessage = "Trường 'Số lần hiến máu' phải là số không âm.")]
         public int SoLanHien { get; set; }
         public ulong? TaiKhoan_ID { get; set; }
-     }
+        public string? OneSiginal_ID { get; set; }
+
+    }
 }

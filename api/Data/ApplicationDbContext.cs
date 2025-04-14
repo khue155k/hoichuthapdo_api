@@ -17,6 +17,8 @@ namespace API.Data
         public DbSet<TheTichMauHien> the_tich_mau_hien { get; set; }
         public DbSet<TinhNguyenVien> tinh_nguyen_vien { get; set; }
         public DbSet<TTHienMau> tt_hien_mau { get; set; }
+        public DbSet<ThongBao_TinhNguyenVien> thong_bao_TNV { get; set; }
+        public DbSet<ThongBao> thong_bao { get; set; }
 
         public DbSet<Province> Provinces { get; set; }
         public DbSet<District> Districts { get; set; }
@@ -27,6 +29,9 @@ namespace API.Data
 
             modelBuilder.Entity<LichSuTangQua>()
                 .HasKey(x => new { x.CCCD, x.MaQua });
+
+            modelBuilder.Entity<ThongBao_TinhNguyenVien>()
+                .HasKey(x => new { x.MaTB, x.CCCD });
         }
     }
 }

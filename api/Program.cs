@@ -12,6 +12,8 @@ using API.Controllers;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<OneSignal>(builder.Configuration.GetSection("OneSignal"));
+
 
 builder.Services.AddCors(options =>
 {
@@ -88,6 +90,8 @@ builder.Services.AddSwaggerGen(c =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     c.IncludeXmlComments(xmlPath);
 });
+
+builder.Services.AddHttpClient<OneSignalService>();
 
 
 var app = builder.Build();

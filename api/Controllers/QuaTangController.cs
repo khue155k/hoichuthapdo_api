@@ -86,7 +86,8 @@ namespace api.Controllers
             return result;
         }
 
-        // GET: api/donvi/{id}
+        // GET: api/QuaTang/{id}
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<TemplateResult<QuaTang>>> GetQuaTang(ulong id)
         {
@@ -163,7 +164,7 @@ namespace api.Controllers
 
             return result;
         }
-
+        [Authorize]
         [HttpGet("getQuaTangsPaginated")]
         public async Task<ActionResult<TemplateResult<IEnumerable<QuaTang>>>> GetAllQuaTangPaginated(int pageSize = 10, int currentPage = 1)
         {

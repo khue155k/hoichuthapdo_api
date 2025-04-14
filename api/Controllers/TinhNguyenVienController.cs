@@ -226,7 +226,7 @@ namespace API.Controllers
 
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("ThongKe/{accID}")]
         public IActionResult GetThongKe(ulong accID)
         {
@@ -275,7 +275,7 @@ namespace API.Controllers
                 soQuaDaNhan = soQua
             });
         }
-
+        [Authorize]
         [HttpGet("LichSu/{accId}")]
         public async Task<IActionResult> GetLichSuHienMau(ulong accId)
         {
@@ -302,5 +302,26 @@ namespace API.Controllers
 
             return Ok(lichSu);
         }
+        [Authorize]
+        [HttpPut("updateOnesignalID")]
+        public async Task<IActionResult> UpdatePlayerId([FromBody] UpdatePlayerIdRequest request)
+        {
+            var user = await _context.tinh_nguyen_vien
+                .FirstOrDefaultAsync(tnv => tnv.TaiKhoan_ID == request.TaiKhoan_ID);
+
+            if (user == null) return NotFound();
+
+            user.OneSiginal_ID = request.OneSiginal_ID;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Cập nhật PlayerId thành công" });
+        }
+
+        public class UpdatePlayerIdRequest
+        {
+            public ulong TaiKhoan_ID { get; set; }
+            public string OneSiginal_ID { get; set; }
+        }
+
     }
 }

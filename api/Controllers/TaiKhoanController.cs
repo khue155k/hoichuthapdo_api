@@ -21,7 +21,7 @@ namespace api.Controllers
         {
             _context = context;
         }
-
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<TemplateResult<IEnumerable<TaiKhoan>>>> GetTaiKhoan(int pageSize = 10, int currentPage = 1)
         {
@@ -67,7 +67,7 @@ namespace api.Controllers
 
             return result;
         }
-
+        [Authorize]
         [HttpPut("updateQTV/{id}")]
         public async Task<ActionResult<TemplateResult<QuanTriVien>>> UpdateQTV(ulong id, [FromBody] QuanTriVien quanTriVien)
         {
@@ -94,6 +94,7 @@ namespace api.Controllers
             return result;
         }
 
+        [Authorize]
         [HttpGet("search")]
         public async Task<ActionResult<TemplateResult<PaginatedResult<TaiKhoan>>>> SearchtTaiKhoan(string string_tim_kiem = "Nội dung tìm kiếm", int pageSize = 10, int currentPage = 1)
         {
@@ -128,6 +129,7 @@ namespace api.Controllers
 
             return result;
         }
+        [Authorize]
         [HttpPut("resetPassword/{id}")]
         public async Task<ActionResult<TemplateResult<string>>> ResetPassword(ulong id)
         {

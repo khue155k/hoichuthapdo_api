@@ -5,6 +5,7 @@ using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace api.Controllers
@@ -14,15 +15,20 @@ namespace api.Controllers
     public class DotHienMauController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly OneSignalService _oneSignalService;
+        private readonly HttpClient _httpClient;
 
-        public DotHienMauController(ApplicationDbContext context)
+        public DotHienMauController(ApplicationDbContext context, OneSignalService oneSignalService, HttpClient httpClient)
         {
             _context = context;
+            _oneSignalService = oneSignalService;
+            _httpClient = httpClient;
         }
         // POST: https://localhost:7037/api/Register
         /// <summary>
         /// Tạo đợt hiến máu
         /// </summary>
+        [Authorize]
         [HttpPost("createDotHm")]
         public async Task<ActionResult<TemplateResult<DotHienMau>>> CreateDotHm([FromBody] DotHienMau dotHienMau)
         {
@@ -36,12 +42,38 @@ namespace api.Controllers
             _context.dot_hien_mau.Add(dotHienMau);
             _context.SaveChanges();
 
+            var threeMonthsAgo = dotHienMau.ThoiGianBatDau.AddMonths(-3);
+
+            var dsTNV = _context.tinh_nguyen_vien
+                .Where(tnv => !string.IsNullOrEmpty(tnv.OneSiginal_ID))
+                .Where(tnv => _context.tt_hien_mau
+                    .Where(tt => tt.CCCD == tnv.CCCD)
+                    .OrderByDescending(tt => tt.ThoiGianHien)
+                    .Select(tt => tt.ThoiGianHien)
+                    .FirstOrDefault() <= threeMonthsAgo)
+            .ToList();
+
+            var thongBao = new ThongBao
+            {
+                TieuDe = "Đợt hiến máu mới",
+                NoiDung = $"Bạn đủ điều kiện tham gia {dotHienMau.TenDot} tại {dotHienMau.DiaDiem} ({dotHienMau.ThoiGianBatDau} - {dotHienMau.ThoiGianKetThuc}). Hãy đăng ký ngay nào!",
+            };
+            var CreateThongBaoRequest = new CreateThongBaoRequestDto
+            {
+                ThongBao = thongBao,
+                DSTinhNguyenVien = dsTNV
+            };
+
+            var controller = new ThongBaoController(_context,_oneSignalService); 
+            await controller.CreateThongBaoToList(CreateThongBaoRequest);
+
             result.Code = 200;
             result.Message = "Tạo đợt hiến máu thành công";
             result.Data = dotHienMau;
             return result;
         }
 
+        [Authorize]
         [HttpPut("updateDotHm/{id}")]
         public async Task<ActionResult<TemplateResult<DotHienMau>>> UpdateDotHm(ulong id, [FromBody] DotHienMau dotHienMau)
         {
@@ -68,6 +100,7 @@ namespace api.Controllers
             return result;
         }
 
+        [Authorize]
         [HttpDelete("deleteDotHm/{id}")]
         public async Task<ActionResult<TemplateResult<object>>> DeleteDotHm(ulong id)
         {
@@ -89,6 +122,7 @@ namespace api.Controllers
         }
 
         // GET: api/dothienmau/{id}
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<TemplateResult<DotHienMau>>> GetDotHienMau(ulong id)
         {

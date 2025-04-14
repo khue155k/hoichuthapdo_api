@@ -33,6 +33,7 @@ namespace api.Controllers
                 result.Message = ModelState.ToString();
                 return result;
             }
+            lichSu.ThoiGianGui = DateTime.Now;
             _context.lich_su_tang_qua.Add(lichSu);
             _context.SaveChanges();
 
@@ -85,7 +86,8 @@ namespace api.Controllers
             return result;
         }
 
-        // GET: api/donvi/{id}
+        // GET: api/LichSuTangQua/{id}
+        [Authorize]
         [HttpGet("getLSTQ")]
         public async Task<ActionResult<TemplateResult<LichSuTangQua>>> GetLSTQ(string cccd, ulong maQua)
         {
@@ -144,6 +146,7 @@ namespace api.Controllers
         }
 
         // GET: api/LichSuTangQua
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<TemplateResult<IEnumerable<LichSuTangQua>>>> GetAllLichSuTangQua()
         {
