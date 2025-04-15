@@ -91,7 +91,7 @@ namespace API.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("updateTNV/{CCCD}")]
         public async Task<ActionResult<TemplateResult<TinhNguyenVien>>> UpdateTNV(string CCCD, [FromBody] TinhNguyenVien TNV)
         {
@@ -121,7 +121,7 @@ namespace API.Controllers
             result.Data = existingEntry;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("deleteTNV/{CCCD}")]
         public async Task<ActionResult<TemplateResult<object>>> DeleteTNV(string CCCD)
         {
@@ -228,8 +228,10 @@ namespace API.Controllers
         }
         [Authorize]
         [HttpGet("ThongKe/{accID}")]
-        public IActionResult GetThongKe(ulong accID)
+        public async Task<ActionResult<object>> GetThongKe(string accID)
         {
+            var result = new TemplateResult<object> { };
+
             var cccd = _context.tinh_nguyen_vien
             .Where(t => t.TaiKhoan_ID == accID)
             .Select(t => t.CCCD)
@@ -241,7 +243,9 @@ namespace API.Controllers
 
             if (!thongTinHienList.Any())
             {
-                return NotFound("Không tìm thấy dữ liệu hiến máu cho CCCD này.");
+                result.Code = 200;
+                result.Message = "Không tìm thấy dữ liệu hiến máu cho CCCD này.";
+                return Ok(result);
             }
 
             int soLanHien = _context.tinh_nguyen_vien
@@ -266,25 +270,37 @@ namespace API.Controllers
             if (soLanHien >= 10) danhHieu = "Hiến máu tiêu biểu";
             else if (soLanHien >= 5) danhHieu = "Đã hiến 5 lần";
 
-            return Ok(new
+
+            result.Code = 200;
+            result.Message = "Lấy dữ liệu thành công.";
+            result.Data = new
             {
                 soLanHien,
                 tongLuongMau,
                 lanCuoiHien = lanCuoi,
                 danhHieu,
                 soQuaDaNhan = soQua
-            });
+            };
+
+            return result;
         }
         [Authorize]
         [HttpGet("LichSu/{accId}")]
-        public async Task<IActionResult> GetLichSuHienMau(ulong accId)
+        public async Task<ActionResult<object>> GetLichSuHienMau(string accId)
         {
+            var result = new TemplateResult<object> { };
+
             var cccd = _context.tinh_nguyen_vien
                   .Where(t => t.TaiKhoan_ID == accId)
                   .Select(t => t.CCCD)
                   .FirstOrDefault();
 
-            if (cccd == null) return NotFound("Không tìm thấy người dùng");
+            if (cccd == null) 
+            {
+                result.Code = 400;
+                result.Message = "Không có lịch sử hiến máu.";
+                return Ok(result);
+            }
 
             var lichSu = await (from ttHM in _context.tt_hien_mau
                                 join thetich in _context.the_tich_mau_hien on ttHM.MaTheTich equals thetich.MaTheTich
@@ -299,8 +315,10 @@ namespace API.Controllers
                                     TenDot = dotHM.TenDot,   
                                     DiaDiem = dotHM.DiaDiem     
                                 }).ToListAsync();
-
-            return Ok(lichSu);
+            result.Code = 200;
+            result.Message = "Lấy dữ liệu thành công.";
+            result.Data = lichSu;
+            return Ok(result);
         }
         [Authorize]
         [HttpPut("updateOnesignalID")]
@@ -316,10 +334,31 @@ namespace API.Controllers
 
             return Ok(new { message = "Cập nhật PlayerId thành công" });
         }
+        //[Authorize]
+        [HttpGet("accId/{accId}")]
+        public async Task<ActionResult<TemplateResult<TinhNguyenVien>>> GetTinhNguyenVienByaccId(string accId)
+        {
+            var result = new TemplateResult<TinhNguyenVien> { };
+
+            var tinhNguyenVien = await _context.tinh_nguyen_vien
+                                               .FirstOrDefaultAsync(tnv => tnv.TaiKhoan_ID == accId);
+
+            if (tinhNguyenVien == null)
+            {
+                result.Code = 404;
+                result.Message = "Không tìm thấy tình nguyện viên với CCCD này.";
+                return result;
+            }
+
+            result.Code = 200;
+            result.Message = "Lấy thông tin thành công.";
+            result.Data = tinhNguyenVien;
+            return result;
+        }
 
         public class UpdatePlayerIdRequest
         {
-            public ulong TaiKhoan_ID { get; set; }
+            public string TaiKhoan_ID { get; set; }
             public string OneSiginal_ID { get; set; }
         }
 

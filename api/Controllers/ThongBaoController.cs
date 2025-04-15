@@ -23,7 +23,7 @@ namespace api.Controllers
         /// <summary>
         /// Tạo thông báo
         /// </summary>
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPost("createThongBao")]
         public async Task<ActionResult<TemplateResult<ThongBao>>> CreateThongBao([FromBody] ThongBao ThongBao)
         {
@@ -34,6 +34,8 @@ namespace api.Controllers
                 result.Message = ModelState.ToString();
                 return result;
             }
+            ThongBao.ThoiGianGui = DateTime.Now;
+
             _context.thong_bao.Add(ThongBao);
             _context.SaveChanges();
 
@@ -57,7 +59,7 @@ namespace api.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPost("createThongBaoToList")]
         public async Task<ActionResult<TemplateResult<ThongBao>>> CreateThongBaoToList([FromBody] CreateThongBaoRequestDto request)
         {
@@ -106,7 +108,7 @@ namespace api.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("updateThongBao/{id}")]
         public async Task<ActionResult<TemplateResult<ThongBao>>> UpdateThongBao(ulong id, [FromBody] ThongBao ThongBao)
         {
@@ -129,7 +131,7 @@ namespace api.Controllers
             result.Data = existingEntry;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("deleteThongBao/{id}")]
         public async Task<ActionResult<TemplateResult<object>>> DeleteThongBao(ulong id)
         {
@@ -179,7 +181,7 @@ namespace api.Controllers
             int pageSize = 10,
             int currentPage = 1)
         {
-            var query = _context.thong_bao.AsEnumerable();
+            var query = _context.thong_bao.OrderByDescending(tb => tb.ThoiGianGui).AsEnumerable();
 
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {
@@ -213,7 +215,7 @@ namespace api.Controllers
         [HttpGet]
         public async Task<ActionResult<TemplateResult<IEnumerable<ThongBao>>>> GetAllThongBao()
         {
-            var ThongBaoList = await _context.thong_bao.ToListAsync();
+            var ThongBaoList = await _context.thong_bao.OrderByDescending(tb => tb.ThoiGianGui).ToListAsync();
 
             var result = new TemplateResult<IEnumerable<ThongBao>>();
 
@@ -234,7 +236,7 @@ namespace api.Controllers
         [HttpGet("getThongBaosPaginated")]
         public async Task<ActionResult<TemplateResult<IEnumerable<ThongBao>>>> GetAllThongBaoPaginated(int pageSize = 10, int currentPage = 1)
         {
-            var ThongBaoList = await _context.thong_bao.ToListAsync();
+            var ThongBaoList = await _context.thong_bao.OrderByDescending(tb => tb.ThoiGianGui).ToListAsync();
 
             var result = new TemplateResult<PaginatedResult<ThongBao>>();
 

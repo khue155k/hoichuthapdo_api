@@ -28,7 +28,7 @@ namespace api.Controllers
         /// <summary>
         /// Tạo đợt hiến máu
         /// </summary>
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPost("createDotHm")]
         public async Task<ActionResult<TemplateResult<DotHienMau>>> CreateDotHm([FromBody] DotHienMau dotHienMau)
         {
@@ -73,7 +73,7 @@ namespace api.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("updateDotHm/{id}")]
         public async Task<ActionResult<TemplateResult<DotHienMau>>> UpdateDotHm(ulong id, [FromBody] DotHienMau dotHienMau)
         {
@@ -100,7 +100,7 @@ namespace api.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("deleteDotHm/{id}")]
         public async Task<ActionResult<TemplateResult<object>>> DeleteDotHm(ulong id)
         {
@@ -122,7 +122,6 @@ namespace api.Controllers
         }
 
         // GET: api/dothienmau/{id}
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<TemplateResult<DotHienMau>>> GetDotHienMau(ulong id)
         {
@@ -143,14 +142,13 @@ namespace api.Controllers
         }
 
         // GET: api/DotHienMau/search
-        [Authorize]
         [HttpGet("search")]
         public async Task<ActionResult<TemplateResult<PaginatedResult<DotHienMau>>>> Search(
             string string_tim_kiem = "Nội dung tìm kiếm",
             int pageSize = 10,
             int currentPage = 1)
         {
-            var query = _context.dot_hien_mau.AsEnumerable();
+            var query = _context.dot_hien_mau.OrderByDescending(d => d.ThoiGianBatDau).AsEnumerable();
 
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {
@@ -202,7 +200,7 @@ namespace api.Controllers
         [HttpGet]
         public async Task<ActionResult<TemplateResult<IEnumerable<DotHienMau>>>> GetAllDotHienMau()
         {
-            var dotHienMauList = await _context.dot_hien_mau.ToListAsync();
+            var dotHienMauList = await _context.dot_hien_mau.OrderByDescending(d => d.ThoiGianBatDau).ToListAsync();
 
             var result = new TemplateResult<IEnumerable<DotHienMau>>();
 
@@ -219,11 +217,11 @@ namespace api.Controllers
 
             return result;
         }
-        [Authorize]
+
         [HttpGet("getDotHMsPaginated")]
         public async Task<ActionResult<TemplateResult<IEnumerable<DotHienMau>>>> GetAllDotHienMauPaginated(int pageSize = 10, int currentPage = 1)
         {
-            var dotHienMauList = await _context.dot_hien_mau.ToListAsync();
+            var dotHienMauList = await _context.dot_hien_mau.OrderByDescending(d => d.ThoiGianBatDau).ToListAsync();
 
             var result = new TemplateResult<PaginatedResult<DotHienMau>>();
 
