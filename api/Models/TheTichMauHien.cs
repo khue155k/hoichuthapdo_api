@@ -7,5 +7,7 @@ namespace API.Models
         [Key]
         public ulong MaTheTich { get; set; }
         public int TheTich { get; set; }
+        public ICollection<TTHienMau>? TTHienMaus { get; set; }
+
     }
 }

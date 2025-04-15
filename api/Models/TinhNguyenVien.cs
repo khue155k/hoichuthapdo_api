@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Telegram.BotAPI.AvailableTypes;
 
 namespace API.Models
@@ -36,8 +38,14 @@ namespace API.Models
         [Required(ErrorMessage = "Trường 'Số lần hiến' không được để trống.")]
         [Range(0, ulong.MaxValue, ErrorMessage = "Trường 'Số lần hiến máu' phải là số không âm.")]
         public int SoLanHien { get; set; }
-        public ulong? TaiKhoan_ID { get; set; }
+        public string? TaiKhoan_ID { get; set; }
         public string? OneSiginal_ID { get; set; }
+
+        [ForeignKey("TaiKhoan_ID")] public TaiKhoan? TaiKhoan { get; set; }
+        [JsonIgnore]
+        public ICollection<TTHienMau>? TTHienMaus { get; set; }
+        public ICollection<LichSuTangQua>? LichSuTangQuas { get; set; }
+        public ICollection<ThongBao_TinhNguyenVien>? ThongBao_TNVs { get; set; }
 
     }
 }

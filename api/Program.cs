@@ -4,15 +4,21 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using api.Common;
 using api.Models;
 using api.Middleware;
-using API.Controllers;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using API.Models;
+
+using api.Service;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.Configure<OneSignal>(builder.Configuration.GetSection("OneSignal"));
+builder.Services.AddScoped<EmailSender>();
 
 
 builder.Services.AddCors(options =>
@@ -27,12 +33,21 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+
 string mySqlConnectionStr = builder.Configuration["ConnectionStrings:MySqlConnection"];
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(mySqlConnectionStr,
        ServerVersion.AutoDetect(mySqlConnectionStr)));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddIdentity<TaiKhoan, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -44,9 +59,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
-            ClockSkew = TimeSpan.Zero
+            //ClockSkew = TimeSpan.Zero
         };
     });
+
+
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("admin", policy =>
+                  policy.RequireClaim(ClaimTypes.Role, "admin"));
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -96,6 +119,14 @@ builder.Services.AddHttpClient<OneSignalService>();
 
 var app = builder.Build();
 
+app.UseHttpsRedirection();
+app.UseRouting();
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    await SeedData.CreateRoles(services);
+//}
+
 app.UseMiddleware<RequestSizeMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -107,9 +138,9 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
         c.RoutePrefix = "";
     });
+
 }
 
-app.UseHttpsRedirection();
 app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthentication();

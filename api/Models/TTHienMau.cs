@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models {
     public class TTHienMau {
@@ -30,5 +31,10 @@ namespace API.Models {
 
         [Required(ErrorMessage = "Trường 'Kết quả' không được để trống.")]
         public string KetQua { get; set; }
+
+        [ForeignKey("MaDot")] public DotHienMau? DotHienMau { get; set; }
+        [ForeignKey("CCCD")] public TinhNguyenVien? TinhNguyenVien { get; set; }
+        [ForeignKey("MaTheTich")] public TheTichMauHien? TheTichMauHien { get; set; }
+        [ForeignKey("MaDV")] public DonVi? DonVi { get; set; }
     }
 }

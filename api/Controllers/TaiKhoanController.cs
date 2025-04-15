@@ -2,11 +2,12 @@
 using API.Data;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Telegram.BotAPI.AvailableTypes;
 
 namespace api.Controllers
 {
@@ -16,12 +17,14 @@ namespace api.Controllers
     public class TaiKhoanController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IServiceProvider _serviceProvider;
 
-        public TaiKhoanController(ApplicationDbContext context)
+        public TaiKhoanController(ApplicationDbContext context, IServiceProvider serviceProvider)
         {
             _context = context;
+            _serviceProvider = serviceProvider;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet]
         public async Task<ActionResult<TemplateResult<IEnumerable<TaiKhoan>>>> GetTaiKhoan(int pageSize = 10, int currentPage = 1)
         {
@@ -46,9 +49,9 @@ namespace api.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet("TTQTV")]
-        public async Task<ActionResult<TemplateResult<QuanTriVien>>> GetTTQTV(ulong id)
+        public async Task<ActionResult<TemplateResult<QuanTriVien>>> GetTTQTV(string id)
         {
             var result = new TemplateResult<QuanTriVien>();
 
@@ -67,7 +70,7 @@ namespace api.Controllers
 
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("updateQTV/{id}")]
         public async Task<ActionResult<TemplateResult<QuanTriVien>>> UpdateQTV(ulong id, [FromBody] QuanTriVien quanTriVien)
         {
@@ -96,22 +99,21 @@ namespace api.Controllers
 
         [Authorize]
         [HttpGet("search")]
-        public async Task<ActionResult<TemplateResult<PaginatedResult<TaiKhoan>>>> SearchtTaiKhoan(string string_tim_kiem = "Nội dung tìm kiếm", int pageSize = 10, int currentPage = 1)
+        public async Task<ActionResult<TemplateResult<PaginatedResult<TaiKhoan>>>> SearchTaiKhoan(string string_tim_kiem = "Nội dung tìm kiếm", int pageSize = 10, int currentPage = 1)
         {
-            var query = _context.tai_khoan.AsQueryable();
-
-            query = query.Where(q => q.Role == "user");
+            var userManager = _serviceProvider.GetRequiredService<UserManager<TaiKhoan>>();
+            var usersInUserRole = await userManager.GetUsersInRoleAsync("user");
 
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {
-                query = query.Where(q => q.Username.Contains(string_tim_kiem));
+                usersInUserRole = usersInUserRole.Where(q => q.UserName.Contains(string_tim_kiem)).ToList();
             }
 
-            var totalCount = await query.CountAsync();
-            var users = await query
+            var totalCount =  usersInUserRole.Count();
+            var users =  usersInUserRole
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToList();
 
             var paginatedResult = new PaginatedResult<TaiKhoan>
             {
@@ -131,9 +133,10 @@ namespace api.Controllers
         }
         [Authorize]
         [HttpPut("resetPassword/{id}")]
-        public async Task<ActionResult<TemplateResult<string>>> ResetPassword(ulong id)
+        public async Task<ActionResult<TemplateResult<string>>> ResetPassword(string id)
         {
-            var user = await _context.tai_khoan.FirstOrDefaultAsync(u => u.ID == id);
+            var userManager = _serviceProvider.GetRequiredService<UserManager<TaiKhoan>>();
+            var user = await userManager.FindByIdAsync(id);
 
             var result = new TemplateResult<string>();
 
@@ -143,11 +146,17 @@ namespace api.Controllers
                 result.Message  = $"Không tìm thấy người dùng có {id}";
                 return result;
             }
-            string resetPassword = "12345678";
-            string hashedPassword = HashPassword(resetPassword);
+            string resetPassword = "User1@";
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
-            user.Password = hashedPassword;
-            _context.SaveChanges();
+            var result1 = await userManager.ResetPasswordAsync(user, token, resetPassword);
+
+            if (!result1.Succeeded)
+            {
+                result.Code = 400;
+                result.Message = string.Join("; ", result1.Errors.Select(e => e.Description));
+                return result;
+            }
 
             result.Code = 200;
             result.Message = "Đổi mật khẩu thành công";
@@ -156,19 +165,5 @@ namespace api.Controllers
             return result;
         }
 
-
-        private string HashPassword(string password)
-        {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                StringBuilder builder = new StringBuilder();
-                foreach (byte b in bytes)
-                {
-                    builder.Append(b.ToString("x2"));
-                }
-                return builder.ToString();
-            }
-        }
     }
 }

@@ -13,7 +13,17 @@
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "",
-      "applicationUrl": "https://localhost:7037;http://localhost:5040",
+      "applicationUrl": "https://localhost:7037;http://localhost:7036",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true
+    },
+    "api1": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "",
+      "applicationUrl": "https://192.168.1.9:7037;http://192.168.1.9:7036",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

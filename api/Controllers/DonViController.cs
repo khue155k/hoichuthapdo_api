@@ -22,7 +22,7 @@ namespace api.Controllers
         /// <summary>
         /// Tạo đơn vị hiến máu
         /// </summary>
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPost("createDonVi")]
         public async Task<ActionResult<TemplateResult<DonVi>>> CreateDonVi([FromBody] DonVi donVi)
         {
@@ -41,7 +41,7 @@ namespace api.Controllers
             result.Data = donVi;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("updateDonVi/{id}")]
         public async Task<ActionResult<TemplateResult<DonVi>>> UpdateDonVi(ulong id, [FromBody] DonVi donVi)
         {
@@ -65,7 +65,7 @@ namespace api.Controllers
             result.Data = existingEntry;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("deleteDonVi/{id}")]
         public async Task<ActionResult<TemplateResult<object>>> DeleteDonVi(ulong id)
         {
@@ -107,7 +107,7 @@ namespace api.Controllers
         }
 
         // GET: api/DonVi/search
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet("search")]
         public async Task<ActionResult<TemplateResult<PaginatedResult<DonVi>>>> Search(
             string string_tim_kiem = "Nội dung tìm kiếm",

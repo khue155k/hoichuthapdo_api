@@ -22,7 +22,7 @@ namespace api.Controllers
         /// <summary>
         /// Tạo quà tặng
         /// </summary>
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPost("createQuaTang")]
         public async Task<ActionResult<TemplateResult<QuaTang>>> CreateQuaTang([FromBody] QuaTang quaTang)
         {
@@ -41,7 +41,7 @@ namespace api.Controllers
             result.Data = quaTang;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("updateQuaTang/{id}")]
         public async Task<ActionResult<TemplateResult<QuaTang>>> UpdateQuaTang(ulong id, [FromBody] QuaTang quaTang)
         {
@@ -65,7 +65,7 @@ namespace api.Controllers
             result.Data = existingEntry;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("deleteQuaTang/{id}")]
         public async Task<ActionResult<TemplateResult<object>>> DeleteQuaTang(ulong id)
         {
@@ -144,6 +144,7 @@ namespace api.Controllers
         }
 
         // GET: api/QuaTang
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<TemplateResult<IEnumerable<QuaTang>>>> GetAllQuaTang()
         {
@@ -198,7 +199,7 @@ namespace api.Controllers
             return Ok(result);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet("searchTNV")]
         public async Task<ActionResult<TemplateResult<PaginatedResult<TinhNguyenVienDTO>>>> SearchTNV(
             string string_tim_kiem = "Nội dung tìm kiếm",
@@ -265,7 +266,7 @@ namespace api.Controllers
             return Ok(result);
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPost("tangQua")]
         public async Task<ActionResult<TemplateResult<LichSuTangQua>>> TangQua([FromBody] LichSuTangQua lichSuTangQua)
         {
@@ -276,6 +277,7 @@ namespace api.Controllers
                 result.Message = ModelState.ToString();
                 return result;
             }
+            lichSuTangQua.ThoiGianGui = DateTime.Now;
             _context.lich_su_tang_qua.Add(lichSuTangQua);
             _context.SaveChanges();
 

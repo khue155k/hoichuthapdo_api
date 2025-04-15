@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using API.Models;
 
 namespace API.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<TaiKhoan>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -27,11 +28,14 @@ namespace API.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.HasDefaultSchema("identity");
+
             modelBuilder.Entity<LichSuTangQua>()
-                .HasKey(x => new { x.CCCD, x.MaQua });
+            .HasKey(x => new { x.CCCD, x.MaQua });
 
             modelBuilder.Entity<ThongBao_TinhNguyenVien>()
                 .HasKey(x => new { x.MaTB, x.CCCD });
+
         }
     }
 }

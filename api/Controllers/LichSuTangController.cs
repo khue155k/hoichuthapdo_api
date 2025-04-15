@@ -22,7 +22,7 @@ namespace api.Controllers
         /// <summary>
         /// Tạo lịch sử tặng quà
         /// </summary>
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPost("createLSTQ")]
         public async Task<ActionResult<TemplateResult<LichSuTangQua>>> CreateLSTQ([FromBody] LichSuTangQua lichSu)
         {
@@ -42,7 +42,7 @@ namespace api.Controllers
             result.Data = lichSu;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("updateLSTQ")]
         public async Task<ActionResult<TemplateResult<LichSuTangQua>>> UpdatLSTQ(string cccd, ulong maQua, [FromBody] LichSuTangQua lichSu)
         {
@@ -65,7 +65,7 @@ namespace api.Controllers
             result.Data = existingEntry;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpDelete("deleteLSTQ")]
         public async Task<ActionResult<TemplateResult<object>>> DeleteLSTQ(string cccd, ulong maQua)
         {
@@ -167,7 +167,7 @@ namespace api.Controllers
 
             return result;
         }
-
+        [Authorize]
         [HttpGet("getLSTQsPaginated")]
         public async Task<ActionResult<TemplateResult<IEnumerable<LichSuTangQua>>>> GetAllLichSuTangQuaPaginated(int pageSize = 10, int currentPage = 1)
         {

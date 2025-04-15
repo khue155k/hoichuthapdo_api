@@ -17,7 +17,7 @@ namespace API.Controllers
         {
             _context = context;
         }
-
+        [Authorize(Roles = "admin")]
         [HttpGet("{id}")]
         public async Task<ActionResult<TemplateResult<object>>> GetTTHienMauById(ulong id)
         {
@@ -72,7 +72,7 @@ namespace API.Controllers
             result.Data = ttHienMau;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("update/{id}")]
         public async Task<ActionResult<TemplateResult<object>>> UpdateTTHienMau(ulong id, [FromBody] UpdateTTHienMauDto updatedEntry)
         {
@@ -130,7 +130,7 @@ namespace API.Controllers
             result.Data = existingEntry;
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("updateStatus/{id}")]
         public async Task<ActionResult<TemplateResult<object>>> UpdateStatus(ulong id, string ketQua)
         {
@@ -183,7 +183,7 @@ namespace API.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpPut("UpdateListStatus")]
         public async Task<ActionResult<TemplateResult<object>>> UpdateListStatus(string ketQua, [FromBody] List<ulong> ids)
         {
@@ -289,7 +289,7 @@ namespace API.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet("search")]
         public async Task<ActionResult<PaginatedResult<TTHienMauDto>>> Search(
             string string_tim_kiem = "Nội dung tìm kiếm",
@@ -372,7 +372,7 @@ namespace API.Controllers
             });
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet("ttHMTheoDot")]
         public async Task<ActionResult<TemplateResult<object>>> DsHMTheoDot(int year)
         {
@@ -398,7 +398,7 @@ namespace API.Controllers
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet("ttHMTheoThang")]
         public async Task<ActionResult<TemplateResult<object>>> DsHMTheoThang(int year)
         {
