@@ -6,8 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using api.Common;
-using api.Models;
+using API.Common;
+using API.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using API.Models;
@@ -178,6 +178,7 @@ namespace API.Controllers
             {
                 var newUser = new TaiKhoan
                 {
+                    CCCD = request.CCCD,
                     UserName = request.Username,
                     Email = request.Email,
                     EmailConfirmed = false,
@@ -239,15 +240,39 @@ namespace API.Controllers
             user.EmailVerificationCode = null;
 
             var tnv = await _context.tinh_nguyen_vien.FirstOrDefaultAsync(x => x.CCCD == user.CCCD);
-            tnv.TaiKhoan_ID = user.Id;
+            if (tnv != null)
+            {
+				tnv.TaiKhoan_ID = user.Id;
+			}
 
-            await _context.SaveChangesAsync();
+			await _context.SaveChangesAsync();
 
             return Ok(new TemplateResult<object>
             {
                 Code = 200,
                 Message = "Xác nhận email thành công, bạn có thể đăng nhập.",
             });
+        }
+        [Authorize]
+        [HttpGet("AccId/{AccId}")]
+        public async Task<ActionResult<TemplateResult<object>>> GetCCCDByAccId(string AccId)
+        {
+            var result = new TemplateResult<object> { };
+
+            var taiKhoan = await _context.tai_khoan
+                                               .FirstOrDefaultAsync(tnv => tnv.Id == AccId);
+
+            if (taiKhoan == null)
+            {
+                result.Code = 404;
+                result.Message = "Không tìm thấy CCCD với mã tài khoản đã cho.";
+                return result;
+            }
+
+            result.Code = 200;
+            result.Message = "Lấy thông tin thành công.";
+            result.Data = taiKhoan.CCCD;
+            return result;
         }
 
         [Authorize(Roles = "admin")]
@@ -276,11 +301,22 @@ namespace API.Controllers
                     Create_time = DateTime.Now,
                 };
 
+
                 var result = await userManager.CreateAsync(newUser, request.Password);
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(newUser, "admin");
 
+                    _context.quan_tri_vien.Add(new QuanTriVien
+                    {
+                        TenQTV = request.TenQTV,
+                        ChucVu = request.ChucVu,
+                        BoPhan = request.BoPhan,
+                        Email = request.Email,
+                        SoDienThoai = request.SoDienThoai,
+                        TaiKhoan_ID = newUser.Id,
+                    });
+                    await _context.SaveChangesAsync();
 
                     return Ok(new TemplateResult<object>
                     {

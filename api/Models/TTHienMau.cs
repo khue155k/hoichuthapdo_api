@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace API.Models {
     public class TTHienMau {
         [Key]
-        [Required(ErrorMessage = "Trường 'Mã thông tin' không được để trống.")]
         public ulong MaTT { get; set; }
 
         [Required(ErrorMessage = "Trường 'Mã đợt' không được để trống.")]
@@ -28,9 +27,7 @@ namespace API.Models {
         [Required(ErrorMessage = "Trường 'Thời gian đăng ký' không được để trống.")]
         public DateTime ThoiGianDangKy { get; set; }
         public DateTime? ThoiGianHien { get; set; }
-
-        [Required(ErrorMessage = "Trường 'Kết quả' không được để trống.")]
-        public string KetQua { get; set; }
+        public string? KetQua { get; set; }
 
         [ForeignKey("MaDot")] public DotHienMau? DotHienMau { get; set; }
         [ForeignKey("CCCD")] public TinhNguyenVien? TinhNguyenVien { get; set; }

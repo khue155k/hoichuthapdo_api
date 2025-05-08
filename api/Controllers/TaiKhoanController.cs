@@ -1,4 +1,4 @@
-﻿using api.Common;
+﻿using API.Common;
 using API.Data;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Telegram.BotAPI.AvailableTypes;
 
-namespace api.Controllers
+namespace API.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
@@ -92,12 +92,12 @@ namespace api.Controllers
             _context.SaveChanges();
 
             result.Code = 200;
-            result.Message = "Sửa quản trị viênthành công";
+            result.Message = "Sửa quản trị viên thành công";
             result.Data = existingEntry;
             return result;
         }
 
-        [Authorize]
+        [Authorize(Roles = "admin")]
         [HttpGet("search")]
         public async Task<ActionResult<TemplateResult<PaginatedResult<TaiKhoan>>>> SearchTaiKhoan(string string_tim_kiem = "Nội dung tìm kiếm", int pageSize = 10, int currentPage = 1)
         {

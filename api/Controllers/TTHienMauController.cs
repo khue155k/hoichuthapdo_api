@@ -1,4 +1,4 @@
-using api.Common;
+using API.Common;
 using API.Data;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -72,6 +72,97 @@ namespace API.Controllers
             result.Data = ttHienMau;
             return result;
         }
+
+        // POST: api/TTHienMau
+        [HttpPost("createTTHienMau")]
+        public async Task<ActionResult<TemplateResult<object>>> CreateTTHienMau(TTHienMau ttHienMau)
+        {
+            var result = new TemplateResult<object> { };
+            if (!ModelState.IsValid)
+            {
+                result.Data = 400;
+                result.Message = ModelState.ToString();
+                return result;
+            }
+
+            var checkTnvId = await _context.tinh_nguyen_vien.FirstOrDefaultAsync(tnv => tnv.CCCD == ttHienMau.CCCD);
+            if (checkTnvId == null) return Ok(new TemplateResult<object> { Code = 400, Message = $"Tình nguyện viên id = {ttHienMau.CCCD} chưa được tạo." });
+
+            var checkTheTichId = await _context.the_tich_mau_hien.FirstOrDefaultAsync(tt => tt.MaTheTich == ttHienMau.MaTheTich);
+            if (checkTheTichId == null) return Ok(new TemplateResult<object> { Code = 400, Message = $"Thể tích hiến máu id = {ttHienMau.MaTheTich} chưa được tạo." });
+
+            var checkDotHienMauId = await _context.dot_hien_mau.FirstOrDefaultAsync(d => d.MaDot == ttHienMau.MaDot);
+            if (checkDotHienMauId == null) return Ok(new TemplateResult<object> { Code = 400, Message = $"Đợt hiến máu id = {ttHienMau.MaDot} chưa được tạo." });
+
+            var checkCoQuanId = await _context.don_vi.FirstOrDefaultAsync(dv => dv.MaDV == ttHienMau.MaDV);
+            if (checkCoQuanId == null) return Ok(new TemplateResult<object> { Code = 400, Message = $"Cơ quan id = {ttHienMau.MaDV} chưa được tạo." });
+
+            var existingEntry = await _context.tt_hien_mau
+                .FirstOrDefaultAsync(ds => ds.MaDot == ttHienMau.MaDot && ds.CCCD == ttHienMau.CCCD);
+
+            if (existingEntry != null)
+            {
+                result.Code = 400;
+                result.Message = "Bạn đã đăng ký đợt hiến máu này rồi, không thể đăng ký thêm.";
+                return result;
+            }
+
+            var dotHM = await _context.dot_hien_mau
+                .FirstOrDefaultAsync(d => d.MaDot == ttHienMau.MaDot);
+
+            if (dotHM.SoNguoiDangKy >= dotHM.DonViMau)
+            {
+                result.Code = 400;
+                result.Message = "Đợt hiến máu đã đủ người. Vui lòng chọn đợt hiến máu khác";
+                return result;
+            }
+
+            var checkHien3T = await _context.tt_hien_mau
+                .Where(t => t.CCCD == ttHienMau.CCCD && t.ThoiGianHien != null &&
+                    (t.ThoiGianHien.Value.AddMonths(3) > ttHienMau.ThoiGianDangKy))
+                .OrderByDescending(t => t.ThoiGianHien)
+                .FirstOrDefaultAsync();
+
+            if (checkHien3T != null)
+            {
+                result.Code = 400;
+                result.Message = $"Bạn đã hiến máu vào ngày {checkHien3T.ThoiGianHien.Value.ToString("dd/MM/yyyy")}. Vui lòng hiến máu sau ngày {checkHien3T.ThoiGianHien.Value.AddMonths(3).ToString("dd/MM/yyyy")}";
+                return result;
+            }
+
+            var ttHM = await _context.tt_hien_mau
+                .Where(t => t.CCCD == ttHienMau.CCCD &&
+                    ((t.ThoiGianDangKy.AddMonths(3) > ttHienMau.ThoiGianDangKy && t.ThoiGianDangKy < ttHienMau.ThoiGianDangKy)
+                    || (t.ThoiGianDangKy.AddMonths(-3) < ttHienMau.ThoiGianDangKy && t.ThoiGianDangKy > ttHienMau.ThoiGianDangKy)))
+                .FirstOrDefaultAsync();
+
+            if (ttHM != null)
+            {
+                result.Code = 400;
+                result.Message = $"Bạn đã đăng ký đợt hiến máu vào ngày {ttHM.ThoiGianDangKy.ToString("dd/MM/yyyy")}. Vui lòng đăng ký 2 đợt hiến máu cách nhau tối thiểu 3 tháng";
+                return result;
+            }
+
+            ttHienMau.KetQua = "Chưa hiến";
+            Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+            _context.tt_hien_mau.Add(ttHienMau);
+
+            var dot = await _context.dot_hien_mau.FindAsync(ttHienMau.MaDot);
+            if (dot != null)
+            {
+                dot.SoNguoiDangKy++;
+            }
+
+            await _context.SaveChangesAsync();
+
+            result.Code = 200;
+            result.Message = "Đăng ký hiến máu thành công.";
+            result.Data = new { id = ttHienMau.MaTT };
+            return result;
+        }
+
+
         [Authorize(Roles = "admin")]
         [HttpPut("update/{id}")]
         public async Task<ActionResult<TemplateResult<object>>> UpdateTTHienMau(ulong id, [FromBody] UpdateTTHienMauDto updatedEntry)
@@ -245,47 +336,24 @@ namespace API.Controllers
             return result;
         }
 
-        // POST: api/TTHienMau
-        [HttpPost("createTTHienMau")]
-        public async Task<ActionResult<TemplateResult<object>>> CreateTTHienMau(TTHienMau ttHienMau)
+        [Authorize(Roles = "admin")]
+        [HttpDelete("deleteTTHM/{id}")]
+        public async Task<ActionResult<TemplateResult<object>>> DeleteTTHM(string CCCD)
         {
             var result = new TemplateResult<object> { };
-            if (!ModelState.IsValid)
+            var existingEntry = _context.tt_hien_mau.FirstOrDefault(d => d.CCCD == CCCD);
+            if (existingEntry == null)
             {
-                result.Data = 400;
-                result.Message = ModelState.ToString();
-                //return BadRequest(ModelState); 
+                result.Code = 404;
+                result.Message = $"Không tìm thấy thông tin hiến máu có CCCD = {CCCD}";
                 return result;
             }
 
-            var checkTnvId = await _context.tinh_nguyen_vien.FirstOrDefaultAsync(tnv => tnv.CCCD == ttHienMau.CCCD);
-            if (checkTnvId == null) return Ok(new TemplateResult<object> { Code = 400, Message = $"Tình nguyện viên id = {ttHienMau.CCCD} chưa được tạo." });
-
-            var checkTheTichId = await _context.the_tich_mau_hien.FirstOrDefaultAsync(tt => tt.MaTheTich == ttHienMau.MaTheTich);
-            if (checkTheTichId == null) return Ok(new TemplateResult<object> { Code = 400, Message = $"Thể tích hiến máu id = {ttHienMau.MaTheTich} chưa được tạo." });
-
-            var checkDotHienMauId = await _context.dot_hien_mau.FirstOrDefaultAsync(d => d.MaDot == ttHienMau.MaDot);
-            if (checkDotHienMauId == null) return Ok(new TemplateResult<object> { Code = 400, Message = $"Đợt hiến máu id = {ttHienMau.MaDot} chưa được tạo." });
-
-            var checkCoQuanId = await _context.don_vi.FirstOrDefaultAsync(dv => dv.MaDV == ttHienMau.MaDV);
-            if (checkCoQuanId == null) return Ok(new TemplateResult<object> { Code = 400, Message = $"Cơ quan id = {ttHienMau.MaDV} chưa được tạo." });
-
-            var existingEntry = await _context.tt_hien_mau
-                .FirstOrDefaultAsync(ds => ds.MaDot == ttHienMau.MaDot && ds.CCCD == ttHienMau.CCCD);
-
-            if (existingEntry != null)
-            {
-                result.Code = 400;
-                result.Message = "Bạn đã đăng ký đợt hiến máu này rồi, không thể đăng ký thêm.";
-                return result;
-            }
-
-            _context.tt_hien_mau.Add(ttHienMau);
-            await _context.SaveChangesAsync();
+            _context.tt_hien_mau.Remove(existingEntry);
+            _context.SaveChanges();
 
             result.Code = 200;
-            result.Message = "Đăng ký hiến máu thành công.";
-            result.Data = new { id = ttHienMau.MaTT };
+            result.Message = "Xóa thông tin hiến máu thành công";
             return result;
         }
 
@@ -377,7 +445,7 @@ namespace API.Controllers
         public async Task<ActionResult<TemplateResult<object>>> DsHMTheoDot(int year)
         {
             var data = await _context.dot_hien_mau
-                .Where(d => d.ThoiGianBatDau.Year == year)
+                .Where(d => d.ThoiGianBatDau.Year == year && d.ThoiGianKetThuc<=DateTime.Now)
                 .OrderBy(d => d.ThoiGianBatDau)
                 .Select(d => new
                 {
@@ -403,7 +471,7 @@ namespace API.Controllers
         public async Task<ActionResult<TemplateResult<object>>> DsHMTheoThang(int year)
         {
             var data = await _context.dot_hien_mau
-                .Where(d => d.ThoiGianBatDau.Year == year)
+                .Where(d => d.ThoiGianBatDau.Year == year && d.ThoiGianKetThuc <= DateTime.Now)
                 .GroupBy(d => new { d.ThoiGianBatDau.Year, d.ThoiGianBatDau.Month })
                 .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
                 .Select(g => new
@@ -422,5 +490,7 @@ namespace API.Controllers
 
             return result;
         }
+
     }
+
 }

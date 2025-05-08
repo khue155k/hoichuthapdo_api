@@ -1,4 +1,4 @@
-﻿using api.Common;
+﻿using API.Common;
 using API.Controllers;
 using API.Data;
 using API.Models;
@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace api.Controllers
+namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -50,7 +50,7 @@ namespace api.Controllers
                 });
             }
 
-            await _oneSignalService.SendNotificationAll(ThongBao.TieuDe, ThongBao.NoiDung);
+            await _oneSignalService.SendNotificationAll(ThongBao.TieuDe, ThongBao.NoiDung, ThongBao.LinkAnh);
             _context.SaveChanges();
 
             result.Code = 200;
@@ -182,6 +182,53 @@ namespace api.Controllers
             int currentPage = 1)
         {
             var query = _context.thong_bao.OrderByDescending(tb => tb.ThoiGianGui).AsEnumerable();
+
+            if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
+            {
+                query = query.Where(q => q.TieuDe.Contains(string_tim_kiem) ||
+                                         q.NoiDung.Contains(string_tim_kiem));
+            }
+
+            var result = new TemplateResult<PaginatedResult<ThongBao>>();
+
+            var totalCount = query.Count();
+            var data = query
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize);
+
+            var paginatedResult = new PaginatedResult<ThongBao>
+            {
+                TotalCount = totalCount,
+                CurrentPage = currentPage,
+                PageSize = pageSize,
+                Items = data
+            };
+
+            result.Code = 200;
+            result.Message = "Tìm kiếm danh sách thông báo thành công";
+            result.Data = paginatedResult;
+            return Ok(result);
+        }
+
+        //[Authorize]
+        [HttpGet("searchByAccId/{AccId}")]
+        public async Task<ActionResult<TemplateResult<PaginatedResult<ThongBao>>>> SearchByAccId(string AccId,
+            string string_tim_kiem = "Nội dung tìm kiếm",
+            int pageSize = 10,
+            int currentPage = 1)
+        {
+            string CCCD = "";
+
+            var taiKhoan = await _context.tai_khoan
+                .FirstOrDefaultAsync(tnv => tnv.Id == AccId);
+
+            if (taiKhoan != null) 
+                CCCD = taiKhoan.CCCD;
+
+            var query = _context.thong_bao
+                .Where(t => t.ThongBao_TNVs.Any(tnv => tnv.CCCD == CCCD))
+                .OrderByDescending(tb => tb.ThoiGianGui)
+                .AsEnumerable();
 
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {

@@ -10,6 +10,7 @@ namespace API.Models
         public DateTime ThoiGianBatDau { get; set; }
         public DateTime ThoiGianKetThuc { get; set; }
         public int DonViMau { get; set; }
+        public int SoNguoiDangKy { get; set; }
         public ICollection<TTHienMau>? TTHienMaus { get; set; }
     }
 }

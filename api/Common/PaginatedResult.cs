@@ -1,4 +1,4 @@
-﻿namespace api.Common
+﻿namespace API.Common
 {
     public class PaginatedResult<T>
     {

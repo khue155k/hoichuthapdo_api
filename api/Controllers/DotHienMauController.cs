@@ -1,4 +1,4 @@
-﻿using api.Common;
+﻿using API.Common;
 using API.Controllers;
 using API.Data;
 using API.Models;
@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Net.Http;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace api.Controllers
+namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -148,7 +148,9 @@ namespace api.Controllers
             int pageSize = 10,
             int currentPage = 1)
         {
-            var query = _context.dot_hien_mau.OrderByDescending(d => d.ThoiGianBatDau).AsEnumerable();
+            var query = _context.dot_hien_mau
+                .OrderByDescending(d => d.ThoiGianBatDau)
+                .AsQueryable();
 
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {
@@ -159,16 +161,18 @@ namespace api.Controllers
             var result = new TemplateResult<PaginatedResult<DotHienMau>>();
 
             var totalCount = query.Count();
-            var data = query
-                .Skip((currentPage - 1) * pageSize)
-                .Take(pageSize);
+
+            var data = await query
+             .Skip((currentPage - 1) * pageSize)
+             .Take(pageSize)
+             .ToListAsync();
 
             var paginatedResult = new PaginatedResult<DotHienMau>
             {
                 TotalCount = totalCount,
                 CurrentPage = currentPage,
                 PageSize = pageSize,
-                Items = data
+                Items = data,
             };
 
             result.Code = 200;
@@ -221,7 +225,9 @@ namespace api.Controllers
         [HttpGet("getDotHMsPaginated")]
         public async Task<ActionResult<TemplateResult<IEnumerable<DotHienMau>>>> GetAllDotHienMauPaginated(int pageSize = 10, int currentPage = 1)
         {
-            var dotHienMauList = await _context.dot_hien_mau.OrderByDescending(d => d.ThoiGianBatDau).ToListAsync();
+            var dotHienMauList = await _context.dot_hien_mau
+                .OrderByDescending(d => d.ThoiGianBatDau)
+                .ToListAsync();
 
             var result = new TemplateResult<PaginatedResult<DotHienMau>>();
 
@@ -234,8 +240,8 @@ namespace api.Controllers
 
             var totalCount = dotHienMauList.Count();
             var data = dotHienMauList
-                .Skip((currentPage - 1) * pageSize)
-                .Take(pageSize);
+             .Skip((currentPage - 1) * pageSize)
+             .Take(pageSize);
 
             var paginatedResult = new PaginatedResult<DotHienMau>
             {

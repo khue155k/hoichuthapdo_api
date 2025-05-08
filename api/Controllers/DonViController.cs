@@ -1,4 +1,4 @@
-﻿using api.Common;
+﻿using API.Common;
 using API.Controllers;
 using API.Data;
 using API.Models;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace api.Controllers
+namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

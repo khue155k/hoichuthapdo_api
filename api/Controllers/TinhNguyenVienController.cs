@@ -1,4 +1,4 @@
-using api.Common;
+using API.Common;
 using API.Data;
 using API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -226,7 +226,8 @@ namespace API.Controllers
 
             return Ok(result);
         }
-        [Authorize]
+
+        [Authorize(Roles = "user")]
         [HttpGet("ThongKe/{accID}")]
         public async Task<ActionResult<object>> GetThongKe(string accID)
         {
@@ -284,7 +285,7 @@ namespace API.Controllers
 
             return result;
         }
-        [Authorize]
+        [Authorize(Roles = "user")]
         [HttpGet("LichSu/{accId}")]
         public async Task<ActionResult<object>> GetLichSuHienMau(string accId)
         {
@@ -320,6 +321,86 @@ namespace API.Controllers
             result.Data = lichSu;
             return Ok(result);
         }
+
+        [Authorize(Roles = "user")]
+        [HttpGet("DotHmDaDK/{accId}")]
+        public async Task<ActionResult<object>> GetDotHMDaDK(string accId)
+        {
+            var result = new TemplateResult<object> { };
+
+            var cccd = _context.tinh_nguyen_vien
+                  .Where(t => t.TaiKhoan_ID == accId)
+                  .Select(t => t.CCCD)
+                  .FirstOrDefault();
+
+            if (cccd == null)
+            {
+                result.Code = 400;
+                result.Message = "Không có đợt hiến máu nào.";
+                return Ok(result);
+            }
+
+            var dotHMs = await (from ttHM in _context.tt_hien_mau
+                                join thetich in _context.the_tich_mau_hien on ttHM.MaTheTich equals thetich.MaTheTich
+                                join dotHM in _context.dot_hien_mau on ttHM.MaDot equals dotHM.MaDot
+                                where (ttHM.CCCD == cccd && ttHM.ThoiGianDangKy.AddDays(1)>DateTime.Now)
+                                orderby ttHM.ThoiGianDangKy ascending
+                                select new
+                                {
+                                    MaDot = ttHM.MaDot,
+                                    ThoiGianDangKy = ttHM.ThoiGianDangKy,
+                                    TenDot = dotHM.TenDot,
+                                    DiaDiem = dotHM.DiaDiem,
+                                    TheTich = thetich.TheTich,
+                                }).ToListAsync();
+            result.Code = 200;
+            result.Message = "Lấy dữ liệu thành công.";
+            result.Data = dotHMs;
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "user")]
+        [HttpDelete("HuyDangKyHM/{accId}")]
+        public async Task<ActionResult<object>> HuyDangKyHM(string accId, ulong maDot)
+        {
+            var result = new TemplateResult<object> { };
+
+            var cccd = _context.tinh_nguyen_vien
+                  .Where(t => t.TaiKhoan_ID == accId)
+                  .Select(t => t.CCCD)
+                  .FirstOrDefault();
+
+            if (cccd == null)
+            {
+                result.Code = 400;
+                result.Message = "Không có tìm thấy tình nguyện viên.";
+                return Ok(result);
+            }
+
+            var ttHM = _context.tt_hien_mau.Where(tt => tt.CCCD == cccd && tt.MaDot == maDot).FirstOrDefault();
+
+            if (ttHM == null)
+            {
+                result.Code = 400;
+                result.Message = "Không có tìm thấy thông tin hiến máu nào phù hợp.";
+                return Ok(result);
+            }
+
+            _context.tt_hien_mau.Remove(ttHM);
+
+            var dot = await _context.dot_hien_mau.FindAsync(ttHM.MaDot);
+            if (dot != null)
+            {
+                dot.SoNguoiDangKy--;
+            }
+
+            await _context.SaveChangesAsync();
+
+            result.Code = 200;
+            result.Message = "Hủy đăng ký thành công.";
+            return Ok(result);
+        }
+
         [Authorize]
         [HttpPut("updateOnesignalID")]
         public async Task<IActionResult> UpdatePlayerId([FromBody] UpdatePlayerIdRequest request)
@@ -355,7 +436,6 @@ namespace API.Controllers
             result.Data = tinhNguyenVien;
             return result;
         }
-
         public class UpdatePlayerIdRequest
         {
             public string TaiKhoan_ID { get; set; }

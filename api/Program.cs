@@ -4,15 +4,18 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using api.Models;
-using api.Middleware;
+using API.Models;
+using API.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using API.Models;
 
-using api.Service;
+using API.Service;
 using System.Security.Claims;
+using Hangfire;
+using Hangfire.MySql;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +38,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 
 string mySqlConnectionStr = builder.Configuration["ConnectionStrings:MySqlConnection"];
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(mySqlConnectionStr,
        ServerVersion.AutoDetect(mySqlConnectionStr)));
@@ -63,13 +67,11 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("admin", policy =>
-                  policy.RequireClaim(ClaimTypes.Role, "admin"));
-});
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.AddPolicy("admin", policy =>
+//                  policy.RequireClaim(ClaimTypes.Role, "admin"));
+//});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -114,17 +116,34 @@ builder.Services.AddSwaggerGen(c =>
     c.IncludeXmlComments(xmlPath);
 });
 
+builder.Services.AddScoped<ThongBaoTuDongService>();
 builder.Services.AddHttpClient<OneSignalService>();
 
+builder.Services.AddHangfire(config =>
+{
+    config.UseStorage(new MySqlStorage(
+         mySqlConnectionStr,
+         new MySqlStorageOptions
+         {
+             PrepareSchemaIfNecessary = true,
+             TablesPrefix = "Hangfire", 
+
+         }));
+});
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = Environment.ProcessorCount * 5;
+});
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
-app.UseRouting();
+//app.UseHttpsRedirection();
+//app.UseRouting();
+
 //using (var scope = app.Services.CreateScope())
 //{
 //    var services = scope.ServiceProvider;
-//    await SeedData.CreateRoles(services);
+//    await SeedData.Initialize(services);
 //}
 
 app.UseMiddleware<RequestSizeMiddleware>();
@@ -140,6 +159,20 @@ if (app.Environment.IsDevelopment())
     });
 
 }
+
+app.UseHangfireDashboard("/hangfire");
+//app.UseHangfireServer();
+
+RecurringJob.AddOrUpdate<ThongBaoTuDongService>(
+    "nhac-nho-hien-mau",
+    service => service.NhacNhoHienMau(),
+    Cron.Daily(23, 30)//+0
+);
+RecurringJob.AddOrUpdate<ThongBaoTuDongService>(
+    "chuc-mung-sinh-nhat",
+    service => service.ChucMungSinhNhat(),
+    Cron.Daily(23, 30)//+0
+);
 
 app.UseCors("AllowSpecificOrigin");
 

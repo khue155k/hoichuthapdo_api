@@ -1,4 +1,4 @@
-﻿using api.Common;
+﻿using API.Common;
 using API.Controllers;
 using API.Data;
 using API.Models;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace api.Controllers
+namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -110,28 +110,38 @@ namespace api.Controllers
         // GET: api/LichSuTangQua/search
         [Authorize]
         [HttpGet("search")]
-        public async Task<ActionResult<TemplateResult<PaginatedResult<LichSuTangQua>>>> Search(
+        public async Task<ActionResult<TemplateResult<PaginatedResult<object>>>> Search(
             string string_tim_kiem = "Nội dung tìm kiếm",
             int pageSize = 10,
             int currentPage = 1)
         {
-            var query = _context.lich_su_tang_qua.AsEnumerable();
+            var query = _context.lich_su_tang_qua
+                .Include(x => x.QuaTang)
+                .Select(x => new
+                {
+                    CCCD = x.CCCD,
+                    MaQua = x.MaQua,
+                    TenQua = x.QuaTang.TenQua,
+                    NoiDung = x.NoiDung,
+                    ThoiGianGui = x.ThoiGianGui,
+                })
+                .AsEnumerable();
 
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {
                 query = query.Where(q => q.NoiDung.Contains(string_tim_kiem) ||
                                          q.CCCD.Contains(string_tim_kiem) ||
-                                         q.MaQua.ToString().Contains(string_tim_kiem));
+                                         q.TenQua.ToString().Contains(string_tim_kiem));
             }
 
-            var result = new TemplateResult<PaginatedResult<LichSuTangQua>>();
+            var result = new TemplateResult<PaginatedResult<object>>();
 
             var totalCount = query.Count();
             var data = query
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize);
 
-            var paginatedResult = new PaginatedResult<LichSuTangQua>
+            var paginatedResult = new PaginatedResult<object>
             {
                 TotalCount = totalCount,
                 CurrentPage = currentPage,
@@ -148,11 +158,21 @@ namespace api.Controllers
         // GET: api/LichSuTangQua
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<TemplateResult<IEnumerable<LichSuTangQua>>>> GetAllLichSuTangQua()
+        public async Task<ActionResult<TemplateResult<IEnumerable<object>>>> GetAllLichSuTangQua()
         {
-            var lichSuList = await _context.lich_su_tang_qua.ToListAsync();
+            var lichSuList = await _context.lich_su_tang_qua
+                .Include(x => x.QuaTang)
+                .Select(x => new
+                {
+                    CCCD = x.CCCD,
+                    MaQua = x.MaQua,
+                    TenQua = x.QuaTang.TenQua,
+                    NoiDung = x.NoiDung,
+                    ThoiGianGui = x.ThoiGianGui,
+                })
+                .ToListAsync();
 
-            var result = new TemplateResult<IEnumerable<LichSuTangQua>>();
+            var result = new TemplateResult<IEnumerable<object>>();
 
             if (lichSuList == null || lichSuList.Count == 0)
             {
@@ -169,11 +189,21 @@ namespace api.Controllers
         }
         [Authorize]
         [HttpGet("getLSTQsPaginated")]
-        public async Task<ActionResult<TemplateResult<IEnumerable<LichSuTangQua>>>> GetAllLichSuTangQuaPaginated(int pageSize = 10, int currentPage = 1)
+        public async Task<ActionResult<TemplateResult<IEnumerable<object>>>> GetAllLichSuTangQuaPaginated(int pageSize = 10, int currentPage = 1)
         {
-            var lichSuList = await _context.lich_su_tang_qua.ToListAsync();
+            var lichSuList = await _context.lich_su_tang_qua
+                .Include(x => x.QuaTang)
+                .Select(x => new
+                {
+                    CCCD = x.CCCD,
+                    MaQua = x.MaQua,
+                    TenQua = x.QuaTang.TenQua,
+                    NoiDung = x.NoiDung,
+                    ThoiGianGui = x.ThoiGianGui,
+                })
+                .ToListAsync();
 
-            var result = new TemplateResult<PaginatedResult<LichSuTangQua>>();
+            var result = new TemplateResult<PaginatedResult<object>>();
 
             if (lichSuList == null || lichSuList.Count == 0)
             {
@@ -187,7 +217,7 @@ namespace api.Controllers
                 .Skip((currentPage - 1) * pageSize)
                 .Take(pageSize);
 
-            var paginatedResult = new PaginatedResult<LichSuTangQua>
+            var paginatedResult = new PaginatedResult<object>
             {
                 TotalCount = totalCount,
                 CurrentPage = currentPage,

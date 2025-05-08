@@ -1,4 +1,4 @@
-﻿namespace api.Middleware
+﻿namespace API.Middleware
 {
     public class RequestSizeMiddleware
     {
