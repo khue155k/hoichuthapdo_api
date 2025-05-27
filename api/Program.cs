@@ -137,8 +137,8 @@ builder.Services.AddHangfireServer(options =>
 
 var app = builder.Build();
 
-//app.UseHttpsRedirection();
-//app.UseRouting();
+app.UseHttpsRedirection();
+app.UseRouting();
 
 //using (var scope = app.Services.CreateScope())
 //{
@@ -161,7 +161,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHangfireDashboard("/hangfire");
-//app.UseHangfireServer();
+app.UseHangfireServer();
 
 RecurringJob.AddOrUpdate<ThongBaoTuDongService>(
     "nhac-nho-hien-mau",

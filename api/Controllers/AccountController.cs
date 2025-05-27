@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Telegram.BotAPI.AvailableTypes;
 using System;
+using API.Service;
 
 namespace API.Controllers
 {
@@ -30,15 +31,16 @@ namespace API.Controllers
         private readonly JwtSettings _jwtSettings;
         private readonly IServiceProvider _serviceProvider;
         private readonly EmailSender _emailSender;
+        private readonly ThongBaoTuDongService _thongBaoTuDongService;
 
-        public AccountController(ApplicationDbContext context, IOptions<JwtSettings> jwtOptions, IServiceProvider serviceProvider, EmailSender emailSender)
+        public AccountController(ApplicationDbContext context, IOptions<JwtSettings> jwtOptions, IServiceProvider serviceProvider, EmailSender emailSender, ThongBaoTuDongService thongBaoTuDongService)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
             _serviceProvider = serviceProvider;
             _emailSender = emailSender;
+            _thongBaoTuDongService = thongBaoTuDongService;
         }
-
 
         // POST: https://localhost:7037/api/Account/Login
         /// <summary>

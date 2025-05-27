@@ -144,7 +144,6 @@ namespace API.Controllers
             }
 
             ttHienMau.KetQua = "Chưa hiến";
-            Console.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
             _context.tt_hien_mau.Add(ttHienMau);
 
