@@ -18,6 +18,8 @@ namespace API.Service
         public async Task<int> NhacNhoHienMau()
         {
             var ngayHomNay = DateTime.Today;
+            ngayHomNay = new DateTime(2025, 6, 6);
+
             var ngayCanNhacNho = ngayHomNay.AddDays(1).Date;
 
             var danhSachNhacNho = await _context.tt_hien_mau
@@ -77,7 +79,7 @@ namespace API.Service
                 {
                     ThongBao thongBao = new ThongBao();
                     thongBao.TieuDe = "Chúc mừng sinh nhật!";
-                    thongBao.NoiDung = "Hội chữ thập đỏ Hà Nam cảm ơn bạn đã không ngừng cống hiến cho cộng đồng. Chúc bạn luôn mạnh khỏe, hạnh phúc và tiếp tục truyền cảm hứng cho mọi người!.";
+                    thongBao.NoiDung = $"Hội chữ thập đỏ Hà Nam chúc bạn {tnv.HoTen} sinh nhật vui vẻ luôn mạnh khỏe, hạnh phúc. Mong bạn hãy tích lực tham gia hiến máu góp phần cứu nhiều người hơn nữa!";
                     thongBao.ThoiGianGui = DateTime.Now;
                     _context.thong_bao.Add(thongBao);
                     _context.SaveChanges();

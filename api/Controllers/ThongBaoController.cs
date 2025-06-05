@@ -70,7 +70,7 @@ namespace API.Controllers
             if (!ModelState.IsValid)
             {
                 result.Code = 400;
-                result.Message = ModelState.ToString(); 
+                result.Message = ModelState.ToString();
                 return result;
             }
             thongBao.ThoiGianGui = DateTime.Now;
@@ -181,7 +181,10 @@ namespace API.Controllers
             int pageSize = 10,
             int currentPage = 1)
         {
-            var query = _context.thong_bao.OrderByDescending(tb => tb.ThoiGianGui).AsEnumerable();
+            var query = _context.thong_bao
+                            .Where(tb => tb.TieuDe != "Nhắc nhở hiến máu" && tb.TieuDe != "Chúc mừng sinh nhật!")
+                            .OrderByDescending(tb => tb.ThoiGianGui)
+                            .AsEnumerable();
 
             if (!string.IsNullOrEmpty(string_tim_kiem) && string_tim_kiem != "Nội dung tìm kiếm")
             {
@@ -222,7 +225,7 @@ namespace API.Controllers
             var taiKhoan = await _context.tai_khoan
                 .FirstOrDefaultAsync(tnv => tnv.Id == AccId);
 
-            if (taiKhoan != null) 
+            if (taiKhoan != null)
                 CCCD = taiKhoan.CCCD;
 
             var query = _context.thong_bao
@@ -283,7 +286,10 @@ namespace API.Controllers
         [HttpGet("getThongBaosPaginated")]
         public async Task<ActionResult<TemplateResult<IEnumerable<ThongBao>>>> GetAllThongBaoPaginated(int pageSize = 10, int currentPage = 1)
         {
-            var ThongBaoList = await _context.thong_bao.OrderByDescending(tb => tb.ThoiGianGui).ToListAsync();
+            var ThongBaoList = await _context.thong_bao
+                .Where(tb => tb.TieuDe != "Nhắc nhở hiến máu" && tb.TieuDe != "Chúc mừng sinh nhật!")
+                .OrderByDescending(tb => tb.ThoiGianGui)
+                .ToListAsync();
 
             var result = new TemplateResult<PaginatedResult<ThongBao>>();
 

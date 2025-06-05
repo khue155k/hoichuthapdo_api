@@ -4,6 +4,7 @@ using API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace API.Controllers
 {
@@ -486,6 +487,47 @@ namespace API.Controllers
             result.Code = 200;
             result.Message = "Lấy danh sách hiến máu theo tháng thành công";
             result.Data = data;
+
+            return result;
+        }
+
+        [HttpGet("soTNVCoTheHM")]
+        public async Task<TemplateResult<object>> ThongKeTinhNguyenVienCoTheHien()
+        {
+            var today = DateTime.Today;
+            var endDate = today.AddMonths(3);
+
+            var lanHienGanNhat = await _context.tinh_nguyen_vien
+                .GroupJoin(
+                    _context.tt_hien_mau,
+                    tnv => tnv.CCCD,
+                    hm => hm.CCCD,
+                    (tnv, hienMaus) => new
+                    {
+                        CCCD = tnv.CCCD,
+                        NgayGanNhat = hienMaus.Max(hm => hm.ThoiGianHien)
+                    }
+                )
+                .ToListAsync();
+
+            var ketQua = new List<object>();
+
+            for (var ngay = today; ngay <= endDate; ngay = ngay.AddDays(1))
+            {
+                var soLuong = lanHienGanNhat
+                    .Count(x => x.NgayGanNhat == null || x.NgayGanNhat.Value.AddDays(90) <= ngay);
+
+                ketQua.Add(new
+                {
+                    Ngay = ngay.ToString("yyyy-MM-dd"),
+                    SoLuong = soLuong
+                });
+            }
+            var result = new TemplateResult<object> { };
+
+            result.Code = 200;
+            result.Message = "Lấy thống kê tình nguyện viên có thể hiến máu theo ngày thành công";
+            result.Data = ketQua;
 
             return result;
         }
