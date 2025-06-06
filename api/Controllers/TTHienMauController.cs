@@ -519,7 +519,7 @@ namespace API.Controllers
 
                 ketQua.Add(new
                 {
-                    Ngay = ngay.ToString("yyyy-MM-dd"),
+                    Ngay = ngay.ToString("dd-MM-yyyy"),
                     SoLuong = soLuong
                 });
             }
